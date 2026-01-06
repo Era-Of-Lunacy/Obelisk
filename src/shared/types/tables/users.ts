@@ -1,5 +1,5 @@
 export enum Class {
-	Healer,
+	Healer = "Healer",
 }
 
 export interface Users {
