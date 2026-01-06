@@ -83,3 +83,55 @@ export class SupabaseClient {
 		return this.request("DELETE", `/rest/v1/${tableName}?${filter}`);
 	}
 }
+
+export interface SupabaseRealtimeEvent<T> {
+	ref: string | undefined;
+	event: "INSERT" | "UPDATE" | "DELETE";
+	payload: {
+		table: string;
+		type: string;
+		record: T;
+		old_record?: Partial<T>;
+		columns: { name: string; type: string }[];
+		errors: unknown;
+		schema: string;
+		commit_timestamp: string;
+	};
+	topic: string;
+}
+
+export class SupabaseStream {
+	private client: WebStreamClient;
+	private schema: string;
+
+	constructor(wsUrl: string, schema = "public") {
+		this.client = HttpService.CreateWebStreamClient(Enum.WebStreamClientType.WebSocket, {
+			Url: wsUrl,
+		});
+		this.schema = schema;
+
+		this.client.Opened.Connect(() => print("Supabase WebSocket connected!"));
+		this.client.Closed.Connect(() => print("Supabase WebSocket closed!"));
+	}
+
+	join<T>(tableName: string, filters?: unknown[], callback?: (event: SupabaseRealtimeEvent<T>) => void) {
+		const msg = {
+			topic: `realtime:${this.schema}:${tableName}`,
+			event: "phx_join",
+			payload: { filters: filters ?? [] },
+			ref: "0",
+		};
+
+		this.client.Send(HttpService.JSONEncode(msg));
+		this.client.MessageReceived.Connect((rawMessage) => {
+			const event = HttpService.JSONDecode(rawMessage) as SupabaseRealtimeEvent<T>;
+
+			if (event.topic === `realtime:${this.schema}:${tableName}`) {
+				if (callback) {
+					callback(event);
+				}
+			}
+		});
+		print(`Joined table channel: ${tableName}`);
+	}
+}
