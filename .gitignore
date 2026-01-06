@@ -2,4 +2,4 @@
 /out
 /include
 *.tsbuildinfo
-*.env.json
+*.env
