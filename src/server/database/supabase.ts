@@ -8,12 +8,12 @@ export interface SupabaseResponse<T> {
 }
 
 export class SupabaseClient {
-	private readonly URL;
-	private readonly API_KEY;
+	private readonly Url: string;
+	private readonly ApiKey: string;
 
 	constructor(supabaseUrl: string, apiKey: string) {
-		this.URL = supabaseUrl;
-		this.API_KEY = apiKey;
+		this.Url = supabaseUrl;
+		this.ApiKey = apiKey;
 	}
 
 	private request<T>(
@@ -24,12 +24,12 @@ export class SupabaseClient {
 	): SupabaseResponse<T> {
 		const [success, response] = pcall(() =>
 			HttpService.RequestAsync({
-				Url: `${this.URL}${path}`,
+				Url: `${this.Url}${path}`,
 				Method: method,
 				Headers: {
 					"Content-Type": "application/json",
-					apikey: this.API_KEY,
-					Authorization: `Bearer ${this.API_KEY}`,
+					apikey: this.ApiKey,
+					Authorization: `Bearer ${this.ApiKey}`,
 					...headers,
 				},
 				Body: body ? HttpService.JSONEncode(body) : undefined,
