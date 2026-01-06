@@ -1,8 +1,8 @@
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
-import { getCurrency } from "server/handlers/data/currency-handler";
 import { SupabaseStream } from "server/database/supabase";
 import { Users } from "shared/types/tables/users";
+import { getUser } from "./data/user-handler";
 
 const stream = new SupabaseStream(
 	`wss://${$env.string("PROJECT_ID")}.supabase.co/realtime/v1/websocket?apikey=${$env.string("SECRET_API_KEY")}`,
@@ -19,7 +19,7 @@ Players.PlayerAdded.Connect((player) => {
 	const bwambles = new Instance("IntValue");
 	bwambles.Name = "Bwambles";
 	bwambles.Parent = Leaderstats;
-	bwambles.Value = getCurrency(player);
+	bwambles.Value = getUser(player)?.bwambles ?? 0;
 
 	leaderstats.set(player, [bwambles]);
 });
@@ -32,7 +32,7 @@ stream.join<Users>("users", undefined, (event) => {
 		const bwambles = leaderstats.get(player)?.[0] as IntValue;
 
 		if (bwambles) {
-			bwambles.Value = event.payload.record.bwambles;
+			bwambles.Value = event.payload.record.bwambles ?? 0;
 		}
 	}
 });
