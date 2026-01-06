@@ -38,7 +38,7 @@ export function updateUser(player: Player, data: Partial<Users>): boolean {
 }
 
 export function upsertUser(data: Partial<Users>): boolean {
-	const result = client.upsert<Users>("users", { data });
+	const result = client.upsert<Users>("users", data);
 
 	if (!result.success) {
 		warn("Error while upserting user data: " + result.error);
