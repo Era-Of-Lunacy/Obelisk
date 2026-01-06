@@ -1,6 +1,6 @@
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
-import { getCurrency } from "server/common/currency-handler";
+import { getCurrency } from "server/handlers/data/currency-handler";
 import { SupabaseStream } from "server/database/supabase";
 import { Users } from "shared/types/tables/users";
 
