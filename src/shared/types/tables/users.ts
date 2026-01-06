@@ -4,7 +4,8 @@ export enum Class {
 
 export interface Users {
 	id: number;
-	created_at: string;
-	bwambles: number;
 	class: Class | undefined;
+	owned_classes: Class[];
+	bwambles: number;
+	created_at: string;
 }
