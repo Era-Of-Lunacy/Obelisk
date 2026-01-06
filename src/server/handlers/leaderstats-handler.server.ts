@@ -1,5 +1,6 @@
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
+import { getCurrency } from "server/common/currency-handler";
 import { SupabaseStream } from "server/database/supabase";
 import { Users } from "shared/types/tables/users";
 
@@ -18,6 +19,7 @@ Players.PlayerAdded.Connect((player) => {
 	const bwambles = new Instance("IntValue");
 	bwambles.Name = "Bwambles";
 	bwambles.Parent = Leaderstats;
+	bwambles.Value = getCurrency(player);
 
 	leaderstats.set(player, [bwambles]);
 });
