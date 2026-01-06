@@ -104,12 +104,31 @@ export class SupabaseStream {
 	private client: WebStreamClient;
 	private schema: string;
 
+	private startHeartbeat() {
+		task.spawn(() => {
+			while (true) {
+				task.wait(30);
+				if (this.client.ConnectionState === Enum.WebStreamClientState.Open) {
+					this.client.Send(
+						HttpService.JSONEncode({
+							topic: "phoenix",
+							event: "heartbeat",
+							payload: {},
+							ref: "0",
+						}),
+					);
+				}
+			}
+		});
+	}
+
 	constructor(wsUrl: string, schema = "public") {
 		this.client = HttpService.CreateWebStreamClient(Enum.WebStreamClientType.WebSocket, {
 			Url: wsUrl,
 		});
 		this.schema = schema;
 
+		this.startHeartbeat();
 		this.client.Opened.Connect(() => print("Supabase WebSocket connected!"));
 		this.client.Closed.Connect(() => print("Supabase WebSocket closed!"));
 	}
