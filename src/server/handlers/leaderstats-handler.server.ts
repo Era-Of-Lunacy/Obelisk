@@ -15,6 +15,8 @@ Players.PlayerAdded.Connect((player) => {
 		.andThen((user) => {
 			if (user.data?.[0]) {
 				bwambles.Value = user.data[0].bwambles;
+			} else {
+				bwambles.Value = 0;
 			}
 		})
 		.catch(() => {
