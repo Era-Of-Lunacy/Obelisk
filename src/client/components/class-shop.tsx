@@ -94,7 +94,7 @@ export default class ClassShop extends Roact.Component<object, State> {
 		const { selectedClass, status } = this.state;
 
 		return (
-			<screengui ResetOnSpawn={false} IgnoreGuiInset={true}>
+			<screengui ResetOnSpawn={true} IgnoreGuiInset={true}>
 				<frame
 					Size={new UDim2(0.8, 0, 0.8, 0)}
 					Position={new UDim2(0.5, 0, 0.5, 0)}
