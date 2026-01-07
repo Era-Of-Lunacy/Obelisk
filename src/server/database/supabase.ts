@@ -53,19 +53,20 @@ export class SupabaseClient {
 }
 
 export interface SupabaseRealtimeEvent<T> {
-	ref: string | undefined;
-	event: "INSERT" | "UPDATE" | "DELETE";
-	payload: {
-		table: string;
-		type: string;
-		record: T;
-		old_record?: Partial<T>;
-		columns: { name: string; type: string }[];
-		errors: unknown;
-		schema: string;
-		commit_timestamp: string;
-	};
 	topic: string;
+	event: string;
+	payload: {
+		data: {
+			table: string;
+			type: "INSERT" | "UPDATE" | "DELETE";
+			record: T;
+			old_record?: Partial<T>;
+			schema: string;
+			commit_timestamp: string;
+			columns: { name: string; type: string }[];
+		};
+	};
+	ref: string | undefined;
 }
 
 export class SupabaseStream {
@@ -90,7 +91,7 @@ export class SupabaseStream {
 			const data = HttpService.JSONDecode(raw) as SupabaseRealtimeEvent<unknown>;
 			const callback = this.subscriptions.get(data.topic);
 
-			if (callback && (data.event === "INSERT" || data.event === "UPDATE" || data.event === "DELETE")) {
+			if (callback && data.event === "postgres_changes") {
 				callback(data);
 			}
 		});

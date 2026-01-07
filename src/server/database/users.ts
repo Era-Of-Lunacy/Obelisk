@@ -67,9 +67,5 @@ export async function deleteUser(player: Player) {
 export const userUpdatedEvent = new Signal<(data: Partial<Users>) => void>();
 
 stream.join<Users>("users", (event) => {
-	if (event.event === "INSERT") {
-		userUpdatedEvent.Fire(event.payload.record);
-	} else if (event.event === "UPDATE") {
-		userUpdatedEvent.Fire(event.payload.record);
-	}
+	userUpdatedEvent.Fire(event.payload.data.record);
 });
