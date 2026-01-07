@@ -1,9 +1,4 @@
-export enum Class {
-	None = "None",
-	Healer = "Healer",
-	Coil = "Coil",
-	Error = "Error",
-}
+import { Class } from "shared/types/classes";
 
 export interface Users {
 	id: number;
