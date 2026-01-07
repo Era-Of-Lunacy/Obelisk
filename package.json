@@ -27,6 +27,7 @@
   "dependencies": {
     "@rbxts/roact": "^3.0.1",
     "@rbxts/services": "^1.6.0",
+    "@rbxts/signal": "^1.1.1",
     "rbxts-transform-env": "^3.0.0"
   }
 }

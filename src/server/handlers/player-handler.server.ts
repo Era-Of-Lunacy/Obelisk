@@ -1,8 +1,15 @@
 import { Players } from "@rbxts/services";
-import { upsertUser } from "server/handlers/data/user-handler";
+import { Class, upsertUser } from "server/database/users";
 
 Players.PlayerAdded.Connect((player) => {
-	upsertUser({
+	upsertUser(player, {
 		id: player.UserId,
-	});
+		owned_classes: [Class.None],
+	})
+		.andThen(() => {
+			print("User created for: " + player.UserId);
+		})
+		.catch(() => {
+			print("Failed to create user for: " + player.UserId);
+		});
 });

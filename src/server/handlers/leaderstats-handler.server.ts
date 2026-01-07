@@ -1,13 +1,5 @@
 import { Players } from "@rbxts/services";
-import { $env } from "rbxts-transform-env";
-import { SupabaseStream } from "server/database/supabase";
-import { Users } from "shared/types/tables/users";
-import { getUser } from "./data/user-handler";
-
-const stream = new SupabaseStream(
-	`wss://${$env.string("PROJECT_ID")}.supabase.co/realtime/v1/websocket?apikey=${$env.string("SECRET_API_KEY")}`,
-	"public",
-);
+import { getUser, userUpdatedEvent } from "server/database/users";
 
 const leaderstats = new Map<Player, Instance[]>();
 
@@ -19,20 +11,29 @@ Players.PlayerAdded.Connect((player) => {
 	const bwambles = new Instance("IntValue");
 	bwambles.Name = "Bwambles";
 	bwambles.Parent = Leaderstats;
-	bwambles.Value = getUser(player)?.bwambles ?? 0;
+	getUser(player)
+		.andThen((user) => {
+			if (user.data?.[0]) {
+				bwambles.Value = user.data[0].bwambles;
+			}
+		})
+		.catch(() => {
+			print("Failed to get user data for: " + player.UserId);
+			bwambles.Value = 0;
+		});
 
 	leaderstats.set(player, [bwambles]);
 });
 
-stream.join<Users>("users", undefined, (event) => {
-	if (event.event !== "UPDATE" && event.event !== "DELETE" && event.event !== "INSERT") return;
+userUpdatedEvent.Connect((data) => {
+	if (data.id !== undefined && data.id !== 0) {
+		const player = Players.GetPlayerByUserId(data.id);
+		if (player) {
+			const bwambles = leaderstats.get(player)?.[0] as IntValue;
 
-	const player = Players.GetPlayerByUserId(event.payload.record.id);
-	if (player) {
-		const bwambles = leaderstats.get(player)?.[0] as IntValue;
-
-		if (bwambles) {
-			bwambles.Value = event.payload.record.bwambles ?? 0;
+			if (bwambles) {
+				bwambles.Value = data.bwambles ?? 0;
+			}
 		}
 	}
 });
