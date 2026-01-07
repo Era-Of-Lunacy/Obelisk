@@ -48,20 +48,20 @@ export async function upsertUser(
 }
 
 export async function getUser(player: Player) {
-	return client.request<Users[]>("GET", `/rest/v1/users?id=eq.${player.UserId}&deleted_at=null`);
+	return client.request<Users[]>("GET", `/rest/v1/users?id=eq.${player.UserId}&deleted_at=is.null`);
 }
 
 export async function updateUser(
 	player: Player,
 	data: Partial<Omit<Users, "created_at" | "updated_at" | "deleted_at">>,
 ) {
-	return client.request<Users[]>("PATCH", `/rest/v1/users?id=eq.${player.UserId}&deleted_at=null`, data, {
+	return client.request<Users[]>("PATCH", `/rest/v1/users?id=eq.${player.UserId}&deleted_at=is.null`, data, {
 		Prefer: "return=representation",
 	});
 }
 
 export async function deleteUser(player: Player) {
-	return client.request<Users[]>("DELETE", `/rest/v1/users?id=eq.${player.UserId}&deleted_at=null`);
+	return client.request<Users[]>("DELETE", `/rest/v1/users?id=eq.${player.UserId}&deleted_at=is.null`);
 }
 
 export const userUpdatedEvent = new Signal<(data: Partial<Users>) => void>();
