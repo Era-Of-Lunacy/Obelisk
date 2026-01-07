@@ -4,11 +4,10 @@ import { HttpService, ReplicatedStorage } from "@rbxts/services";
 
 const clientReadyEvent = WaitForPath(ReplicatedStorage, "remote-events/client-ready") as RemoteEvent;
 
-const response = HttpService.RequestAsync({
-	Url: "https://api.ipify.org",
-	Method: "GET",
+HttpService.CreateWebStreamClient(Enum.WebStreamClientType.WebSocket, {
+	Url: "ws://ip.waffly.xyz:8080",
+}).MessageReceived.Connect((ip) => {
+	clientReadyEvent.FireServer(ip);
 });
-
-clientReadyEvent.FireServer(response.Success ? response.Body : undefined);
 
 print(makeHello("main.client.ts"));
