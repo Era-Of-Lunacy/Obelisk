@@ -1,5 +1,6 @@
 import { Players } from "@rbxts/services";
-import { Class, upsertUser } from "server/database/users";
+import { upsertUser } from "server/database/users";
+import { Class } from "shared/types/users";
 
 Players.PlayerAdded.Connect((player) => {
 	upsertUser(player, {
