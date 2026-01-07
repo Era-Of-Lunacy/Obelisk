@@ -8,5 +8,5 @@ const client = new SupabaseClient(
 );
 
 export function getClass(classType: Class) {
-	return client.request<Classes>("GET", `/rest/v1/classes?class=eq.${classType}`);
+	return client.request<Classes[]>("GET", `/rest/v1/classes?class=eq.${classType}`);
 }
