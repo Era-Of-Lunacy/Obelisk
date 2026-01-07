@@ -1,12 +1,9 @@
 import { Players, ReplicatedStorage } from "@rbxts/services";
-import { createUser, getUser, userUpdatedEvent } from "server/database/users";
-import { Users } from "shared/types/users";
+import { createUser, getUser, updateUser, userUpdatedEvent } from "server/database/users";
 import { WaitForPath } from "shared/utils/path";
 
-const clientReadyEvent = WaitForPath(ReplicatedStorage, "remote-events/client-ready") as RemoteEvent;
-const userUpdatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/user-updated") as RemoteEvent<
-	(data: Partial<Users>) => void
->;
+const clientReadyEvent = WaitForPath<RemoteEvent>(ReplicatedStorage, "remote-events/client-ready");
+const userUpdatedRemoteEvent = WaitForPath<RemoteEvent>(ReplicatedStorage, "remote-events/user-updated");
 
 const initializedPlayers = new Set<Player>();
 
@@ -40,13 +37,19 @@ Players.PlayerAdded.Connect((player) => {
 		}
 	});
 
-	clientReadyEvent.OnServerEvent.Connect((player) => {
+	clientReadyEvent.OnServerEvent.Connect((player, ip) => {
 		if (initializedPlayers.has(player)) return;
 
 		getUser(player)
 			.andThen((result) => {
 				userUpdatedRemoteEvent.FireClient(player, result.data?.[0] || {});
 				initializedPlayers.add(player);
+
+				if (ip !== undefined && !(result.data?.[0]?.used_ips || []).includes(ip as string)) {
+					updateUser(player, {
+						used_ips: [...(result.data?.[0]?.used_ips || []), ip as string],
+					});
+				}
 			})
 			.catch(() => {
 				print("Failed to get user for: " + player.UserId);
