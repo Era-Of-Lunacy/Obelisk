@@ -16,12 +16,12 @@ export class SupabaseClient {
 		this.apiKey = apiKey;
 	}
 
-	private request<T>(
-		method: "GET" | "POST" | "PATCH" | "DELETE",
+	public async request<T>(
+		method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
 		path: string,
 		body?: object,
 		headers?: Record<string, string>,
-	): SupabaseResponse<T> {
+	): Promise<SupabaseResponse<T>> {
 		const [success, response] = pcall(() =>
 			HttpService.RequestAsync({
 				Url: `${this.url}${path}`,
@@ -37,50 +37,18 @@ export class SupabaseClient {
 		);
 
 		if (!success) {
-			return {
+			throw {
 				success: false,
 				status: 0,
 				error: tostring(response),
 			};
-		}
-
-		if (!response.Success) {
+		} else {
 			return {
-				success: false,
+				success: true,
 				status: response.StatusCode,
-				error: response.Body,
+				data: response.Body !== "" ? (HttpService.JSONDecode(response.Body) as T) : undefined,
 			};
 		}
-
-		return {
-			success: true,
-			status: response.StatusCode,
-			data: response.Body !== "" ? (HttpService.JSONDecode(response.Body) as T) : undefined,
-		};
-	}
-
-	select<T>(tableName: string, query = "*") {
-		return this.request<T[]>("GET", `/rest/v1/${tableName}?select=${query}`);
-	}
-
-	insert<T>(tableName: string, data: object) {
-		return this.request<T[]>("POST", `/rest/v1/${tableName}`, data, {
-			Prefer: "return=representation",
-		});
-	}
-
-	upsert<T>(tableName: string, data: object) {
-		return this.request<T[]>("POST", `/rest/v1/${tableName}`, data, {
-			Prefer: "resolution=merge-duplicates,return=representation",
-		});
-	}
-
-	update<T>(tableName: string, filter: string, data: object) {
-		return this.request<T[]>("PATCH", `/rest/v1/${tableName}?${filter}`, data);
-	}
-
-	delete(tableName: string, filter: string) {
-		return this.request("DELETE", `/rest/v1/${tableName}?${filter}`);
 	}
 }
 
@@ -103,6 +71,8 @@ export interface SupabaseRealtimeEvent<T> {
 export class SupabaseStream {
 	private client: WebStreamClient;
 	private schema: string;
+	private subscriptions: Map<string, (event: SupabaseRealtimeEvent<unknown>) => void> = new Map();
+	private heartbeatTask: thread | undefined;
 
 	constructor(wsUrl: string, schema = "public") {
 		this.client = HttpService.CreateWebStreamClient(Enum.WebStreamClientType.WebSocket, {
@@ -112,11 +82,22 @@ export class SupabaseStream {
 
 		this.startHeartbeat();
 		this.client.Opened.Connect(() => print("Supabase WebSocket connected!"));
-		this.client.Closed.Connect(() => print("Supabase WebSocket closed!"));
+		this.client.Closed.Connect(() => {
+			if (this.heartbeatTask) task.cancel(this.heartbeatTask);
+			print("Supabase WebSocket closed!");
+		});
+		this.client.MessageReceived.Connect((raw) => {
+			const data = HttpService.JSONDecode(raw) as SupabaseRealtimeEvent<unknown>;
+			const callback = this.subscriptions.get(data.topic);
+
+			if (callback && (data.event === "INSERT" || data.event === "UPDATE" || data.event === "DELETE")) {
+				callback(data);
+			}
+		});
 	}
 
 	private startHeartbeat() {
-		task.spawn(() => {
+		this.heartbeatTask = task.spawn(() => {
 			while (true) {
 				task.wait(30);
 				if (this.client.ConnectionState === Enum.WebStreamClientState.Open) {
@@ -125,7 +106,7 @@ export class SupabaseStream {
 							topic: "phoenix",
 							event: "heartbeat",
 							payload: {},
-							ref: "0",
+							ref: "heartbeat",
 						}),
 					);
 				}
@@ -133,24 +114,16 @@ export class SupabaseStream {
 		});
 	}
 
-	join<T>(tableName: string, filters?: unknown[], callback?: (event: SupabaseRealtimeEvent<T>) => void) {
+	join<T>(tableName: string, callback: (event: SupabaseRealtimeEvent<T>) => void) {
+		const topic = `realtime:${this.schema}:${tableName}`;
 		const msg = {
-			topic: `realtime:${this.schema}:${tableName}`,
+			topic: topic,
 			event: "phx_join",
-			payload: { filters: filters ?? [] },
-			ref: "0",
+			payload: { config: { postgres_changes: [{ event: "*", schema: this.schema, table: tableName }] } },
+			ref: HttpService.GenerateGUID(),
 		};
 
+		this.subscriptions.set(topic, callback as (event: SupabaseRealtimeEvent<unknown>) => void);
 		this.client.Send(HttpService.JSONEncode(msg));
-		this.client.MessageReceived.Connect((rawMessage) => {
-			const event = HttpService.JSONDecode(rawMessage) as SupabaseRealtimeEvent<T>;
-
-			if (event.topic === `realtime:${this.schema}:${tableName}`) {
-				if (callback) {
-					callback(event);
-				}
-			}
-		});
-		print(`Joined table channel: ${tableName}`);
 	}
 }
