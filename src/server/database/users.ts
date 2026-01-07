@@ -1,6 +1,7 @@
 import Signal from "@rbxts/signal";
 import { $env } from "rbxts-transform-env";
 import { SupabaseClient, SupabaseStream } from "server/database/supabase";
+import { Users } from "shared/types/users";
 
 const client = new SupabaseClient(
 	`https://${$env.string("PROJECT_ID")}.supabase.co`,
@@ -11,21 +12,6 @@ const stream = new SupabaseStream(
 	`wss://${$env.string("PROJECT_ID")}.supabase.co/realtime/v1/websocket?apikey=${$env.string("SECRET_API_KEY")}`,
 	"public",
 );
-
-export enum Class {
-	None = "None",
-	Healer = "Healer",
-}
-
-export interface Users {
-	id: number;
-	class: Class;
-	owned_classes: Class[];
-	bwambles: number;
-	created_at: string;
-	updated_at: string;
-	deleted_at: string | undefined;
-}
 
 export async function createUser(player: Player) {
 	return client.request<Users[]>(
