@@ -11,7 +11,7 @@ Players.LocalPlayer.CharacterAdded.Connect((character) => {
 	const humanoidRootPart = character.FindFirstChild("HumanoidRootPart") as BasePart;
 
 	const params = new OverlapParams();
-	params.FilterType = Enum.RaycastFilterType.Exclude;
+	params.FilterType = Enum.RaycastFilterType.Include;
 	params.FilterDescendantsInstances = [humanoidRootPart];
 
 	let tree: Roact.Tree | undefined;
