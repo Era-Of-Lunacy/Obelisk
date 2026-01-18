@@ -28,7 +28,7 @@ if (result.success === true && result.data !== undefined) {
 }
 
 const wsUrl = `wss://${$env.string("PROJECT_ID")}.supabase.co/realtime/v1/websocket?apikey=${$env.string(
-	"ANON_API_KEY",
+	"SECRET_API_KEY",
 	"",
 )}`;
 const stream = new SupabaseStream(wsUrl);
