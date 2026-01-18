@@ -1,11 +1,7 @@
-export enum Class {
-	None = "None",
-	Healer = "Healer",
-	Coil = "Coil",
-	Error = "Error",
-}
-
 export interface Classes {
-	class: Class;
+	class: string;
 	price: number;
+	icon_image_id: string;
+	full_image_id: string;
+	enabled: boolean;
 }

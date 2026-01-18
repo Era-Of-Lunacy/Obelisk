@@ -1,7 +1,6 @@
 import { ReplicatedStorage } from "@rbxts/services";
-import { getClass } from "server/database/classes";
-import { getUser, updateUser } from "server/database/users";
-import { Class } from "shared/types/classes";
+import { getClassData } from "server/handlers/data/class-data";
+import { getUserData, updateUser as updateCachedUser } from "server/handlers/data/user-data";
 import { WaitForPath } from "shared/utils/path";
 
 const buyClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/buy-class");
@@ -9,62 +8,63 @@ const equipClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remot
 const unequipClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/unequip-class");
 
 buyClassFunction.OnServerInvoke = (player, classType) => {
-	const [userSuccess, userResult] = getUser(player).await();
-	const [classSuccess, classResult] = getClass(classType as Class).await();
+	const userData = getUserData(player.UserId);
+	const classData = getClassData(classType as string);
 
-	if (userSuccess && classSuccess && userResult.data && classResult.data) {
-		if (!userResult.data?.[0].owned_classes.includes(classType as Class)) {
-			if (userResult.data[0].bwambles >= classResult.data[0].price) {
-				const [success] = updateUser(player, {
-					bwambles: userResult.data[0].bwambles - classResult.data[0].price,
-					owned_classes: [...userResult.data[0].owned_classes, classType as Class],
-				}).await();
+	if (userData !== undefined && classData !== undefined) {
+		if (!userData.owned_classes.includes(classType)) {
+			if (userData.bwambles >= classData.price) {
+				const success = updateCachedUser(player.UserId, {
+					bwambles: userData.bwambles - classData.price,
+					owned_classes: [...userData.owned_classes, classType],
+				});
 
-				if (success) {
+				if (success === true) {
 					return true;
 				}
 			}
 		}
 	} else {
-		warn("Failed to get user or class", userResult, classResult);
+		warn("Failed to get user or class data", userData, classData);
 	}
 
 	return false;
 };
 
 equipClassFunction.OnServerInvoke = (player, classType) => {
-	const [userSuccess, userResult] = getUser(player).await();
+	const userData = getUserData(player.UserId);
+	const classData = getClassData(classType as string);
 
-	if (userSuccess && userResult.data) {
-		if (userResult.data[0].owned_classes.includes(classType as Class)) {
-			const [success] = updateUser(player, {
-				class: classType as Class,
-			}).await();
+	if (userData !== undefined && classData !== undefined) {
+		if (userData.owned_classes.includes(classType)) {
+			const success = updateCachedUser(player.UserId, {
+				class: classType,
+			});
 
-			if (success) {
+			if (success === true) {
 				return true;
 			}
 		}
 	} else {
-		warn("Failed to get user", userResult);
+		warn("Failed to get user or class data", userData, classData);
 	}
 
 	return false;
 };
 
 unequipClassFunction.OnServerInvoke = (player) => {
-	const [userSuccess, userResult] = getUser(player).await();
+	const userData = getUserData(player.UserId);
 
-	if (userSuccess && userResult.data) {
-		const [success] = updateUser(player, {
-			class: Class.None,
-		}).await();
+	if (userData !== undefined) {
+		const success = updateCachedUser(player.UserId, {
+			class: "None",
+		});
 
-		if (success) {
+		if (success === true) {
 			return true;
 		}
 	} else {
-		warn("Failed to get user", userResult);
+		warn("Failed to get user data", userData);
 	}
 
 	return false;

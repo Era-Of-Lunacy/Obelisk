@@ -1,57 +1,5 @@
 import { HttpService } from "@rbxts/services";
 
-export interface SupabaseResponse<T> {
-	success: boolean;
-	status: number;
-	data?: T;
-	error?: string;
-}
-
-export class SupabaseClient {
-	private readonly url: string;
-	private readonly apiKey: string;
-
-	constructor(supabaseUrl: string, apiKey: string) {
-		this.url = supabaseUrl;
-		this.apiKey = apiKey;
-	}
-
-	public async request<T>(
-		method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
-		path: string,
-		body?: object,
-		headers?: Record<string, string>,
-	): Promise<SupabaseResponse<T>> {
-		const [success, response] = pcall(() =>
-			HttpService.RequestAsync({
-				Url: `${this.url}${path}`,
-				Method: method,
-				Headers: {
-					"Content-Type": "application/json",
-					apikey: this.apiKey,
-					Authorization: `Bearer ${this.apiKey}`,
-					...headers,
-				},
-				Body: body ? HttpService.JSONEncode(body) : undefined,
-			}),
-		);
-
-		if (!success) {
-			throw {
-				success: false,
-				status: 0,
-				error: tostring(response),
-			};
-		} else {
-			return {
-				success: true,
-				status: response.StatusCode,
-				data: response.Body !== "" ? (HttpService.JSONDecode(response.Body) as T) : undefined,
-			};
-		}
-	}
-}
-
 export interface SupabaseRealtimeEvent<T> {
 	topic: string;
 	event: string;
