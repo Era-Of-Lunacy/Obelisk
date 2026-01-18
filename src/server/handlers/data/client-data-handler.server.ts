@@ -31,7 +31,10 @@ clientReadyEvent.OnServerEvent.Connect((player) => {
 	}
 
 	if (classData !== undefined) {
-		classUpdatedRemoteEvent.FireClient(player, classData);
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		for (const [_, classInfo] of pairs(classData)) {
+			classCreatedRemoteEvent.FireClient(player, classInfo);
+		}
 	}
 });
 
