@@ -2,13 +2,12 @@ import { SupabaseClient } from "@rbxts/roblox-postgrest";
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
 import { Users } from "shared/types/users";
+import { cachedUsers } from "./user-data";
 
 const client = new SupabaseClient(
 	`https://${$env.string("PROJECT_ID")}.supabase.co`,
 	$env.string("SECRET_API_KEY", ""),
 );
-
-const cachedUsers: Record<number, Users> = {};
 
 Players.PlayerAdded.Connect((player) => {
 	const result = client.from("users").eq("id", player.UserId).maybeSingle<Users>();
