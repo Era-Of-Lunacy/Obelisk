@@ -1,10 +1,11 @@
+import { DatabaseEvents } from "server/types/database";
+import { userUpdatedEvent } from "server/handlers/data/user-data";
+import { Users } from "shared/types/users";
 import { Players } from "@rbxts/services";
-import { getUser, userUpdatedEvent } from "server/database/users";
-import { Class } from "shared/types/classes";
 
-const leaderstats = new Map<Player, Instance[]>();
+const playerLeaderstats = new Map<Player, [IntValue, StringValue]>();
 
-Players.PlayerAdded.Connect((player) => {
+function createLeaderstats(player: Player) {
 	const Leaderstats = new Instance("Folder");
 	Leaderstats.Name = "leaderstats";
 	Leaderstats.Parent = player;
@@ -17,37 +18,26 @@ Players.PlayerAdded.Connect((player) => {
 	classType.Name = "Class";
 	classType.Parent = Leaderstats;
 
-	getUser(player)
-		.andThen((user) => {
-			if (user.data?.[0]) {
-				bwambles.Value = user.data[0].bwambles;
-				classType.Value = user.data[0].class;
-			} else {
-				bwambles.Value = 0;
-				classType.Value = Class.None;
-			}
-		})
-		.catch(() => {
-			print("Failed to get user data for: " + player.UserId);
-			bwambles.Value = 0;
-		});
+	playerLeaderstats.set(player, [bwambles, classType]);
+}
 
-	leaderstats.set(player, [bwambles, classType]);
-});
+function updateLeaderstats(player: Player, data: Users) {
+	if (playerLeaderstats.has(player)) {
+		const leaderstats = playerLeaderstats.get(player)!;
+		leaderstats[0].Value = data.bwambles;
+		leaderstats[1].Value = data.class;
+	}
+}
 
-userUpdatedEvent.Connect((data) => {
-	if (data.id !== undefined && data.id !== 0) {
+userUpdatedEvent.Connect((event, data) => {
+	if (event === DatabaseEvents.Created) {
 		const player = Players.GetPlayerByUserId(data.id);
-		if (player) {
-			const bwambles = leaderstats.get(player)?.[0] as IntValue;
-			const classType = leaderstats.get(player)?.[1] as StringValue;
-
-			if (bwambles) {
-				bwambles.Value = data.bwambles ?? 0;
-			}
-			if (classType) {
-				classType.Value = data.class ?? Class.None;
-			}
-		}
+		if (!player) return;
+		createLeaderstats(player);
+		updateLeaderstats(player, data);
+	} else if (event === DatabaseEvents.Updated) {
+		const player = Players.GetPlayerByUserId(data.id);
+		if (!player) return;
+		updateLeaderstats(player, data);
 	}
 });
