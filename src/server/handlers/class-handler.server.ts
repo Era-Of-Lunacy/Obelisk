@@ -12,11 +12,11 @@ buyClassFunction.OnServerInvoke = (player, classType) => {
 	const classData = getClassData(classType as string);
 
 	if (userData !== undefined && classData !== undefined) {
-		if (!userData.owned_classes.includes(classType)) {
+		if (!userData.owned_classes.includes(classType as string)) {
 			if (userData.bwambles >= classData.price) {
 				const success = updateCachedUser(player.UserId, {
 					bwambles: userData.bwambles - classData.price,
-					owned_classes: [...userData.owned_classes, classType],
+					owned_classes: [...userData.owned_classes, classType as string],
 				});
 
 				if (success === true) {
@@ -36,9 +36,9 @@ equipClassFunction.OnServerInvoke = (player, classType) => {
 	const classData = getClassData(classType as string);
 
 	if (userData !== undefined && classData !== undefined) {
-		if (userData.owned_classes.includes(classType)) {
+		if (userData.owned_classes.includes(classType as string)) {
 			const success = updateCachedUser(player.UserId, {
-				class: classType,
+				class: classType as string,
 			});
 
 			if (success === true) {

@@ -1,9 +1,7 @@
-import { Class } from "shared/types/classes";
-
 export interface Users {
 	id: number;
-	class: Class;
-	owned_classes: Class[];
+	class: string;
+	owned_classes: string[];
 	bwambles: number;
 	created_at: string;
 	updated_at: string;
