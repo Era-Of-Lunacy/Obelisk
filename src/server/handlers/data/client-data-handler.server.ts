@@ -1,10 +1,12 @@
 import { Players, ReplicatedStorage } from "@rbxts/services";
-import { userUpdatedEvent } from "server/handlers/data/user-data";
+import { getUserData, userUpdatedEvent } from "server/handlers/data/user-data";
 import { DatabaseEvents } from "server/types/database";
 import { Classes } from "shared/types/classes";
 import { Users } from "shared/types/users";
 import { WaitForPath } from "shared/utils/path";
-import { classUpdatedEvent } from "./class-data";
+import { classUpdatedEvent, getAllClassData } from "./class-data";
+
+const clientReadyEvent = WaitForPath(ReplicatedStorage, "remote-events/client-ready") as RemoteEvent;
 
 const userUpdatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/user-updated") as RemoteEvent<
 	(data: Partial<Users>) => void
@@ -19,6 +21,19 @@ const classUpdatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/cl
 const classDeletedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-deleted") as RemoteEvent<
 	(data: Partial<Classes>) => void
 >;
+
+clientReadyEvent.OnServerEvent.Connect((player) => {
+	const userData = getUserData(player.UserId);
+	const classData = getAllClassData();
+
+	if (userData !== undefined) {
+		userUpdatedRemoteEvent.FireClient(player, userData);
+	}
+
+	if (classData !== undefined) {
+		classUpdatedRemoteEvent.FireClient(player, classData);
+	}
+});
 
 userUpdatedEvent.Connect((event, data) => {
 	if (event === DatabaseEvents.Updated) {
