@@ -20,8 +20,6 @@ const ASSETS = {
 	UNEQUIP_BUTTON: "rbxassetid://74393977413624",
 };
 
-// Get class data dynamically instead of using a hardcoded map
-
 export default class ClassShop extends Roact.Component<object, State> {
 	constructor(props: object) {
 		super(props);
