@@ -22,12 +22,12 @@ Players.PlayerAdded.Connect((player) => {
 
 			if (result.data.deleted_at === undefined || result.data.deleted_at === "") {
 				cachedUsers[player.UserId] = result.data;
-				userUpdatedEvent.Fire(DatabaseEvents.Created, player.UserId, result.data);
+				userUpdatedEvent.Fire(DatabaseEvents.Created, result.data);
 
 				if (client.from("users").eq("id", player.UserId).update({ is_playing: true }).success === false) {
 					player.Kick("Failed to update user data");
 					delete cachedUsers[player.UserId];
-					userUpdatedEvent.Fire(DatabaseEvents.Deleted, player.UserId, result.data);
+					userUpdatedEvent.Fire(DatabaseEvents.Deleted, result.data);
 					return;
 				}
 			} else {
@@ -42,7 +42,7 @@ Players.PlayerAdded.Connect((player) => {
 			if (insertResult.success === true && insertResult.data?.[0]) {
 				print("User created successfully");
 				cachedUsers[player.UserId] = insertResult.data[0];
-				userUpdatedEvent.Fire(DatabaseEvents.Created, player.UserId, insertResult.data[0]);
+				userUpdatedEvent.Fire(DatabaseEvents.Created, insertResult.data[0]);
 				return;
 			} else {
 				player.Kick("Failed to create user");
@@ -66,6 +66,6 @@ Players.PlayerRemoving.Connect((player) => {
 		}
 
 		delete cachedUsers[player.UserId];
-		userUpdatedEvent.Fire(DatabaseEvents.Deleted, player.UserId, cachedUsers[player.UserId]);
+		userUpdatedEvent.Fire(DatabaseEvents.Deleted, cachedUsers[player.UserId]);
 	}
 });
