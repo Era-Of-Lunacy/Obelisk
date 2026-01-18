@@ -34,7 +34,19 @@ export default class ClassShop extends Roact.Component<object, State> {
 		const classButtons: Roact.Element[] = [];
 		const classes = getClassData();
 
+		const classesArray = [];
 		for (const [className, classInfo] of pairs(classes)) {
+			classesArray.push({
+				...classInfo,
+				className: className,
+			});
+		}
+
+		table.sort(classesArray, (a, b) => {
+			return (a?.price ?? 0) < (b?.price ?? 0);
+		});
+
+		for (const classInfo of classesArray) {
 			if (classInfo.icon_image_id === undefined || classInfo.enabled === false) continue;
 
 			classButtons.push(
@@ -43,11 +55,11 @@ export default class ClassShop extends Roact.Component<object, State> {
 					BackgroundTransparency={1}
 					Event={{
 						Activated: () => {
-							if (!hasClass(className)) {
+							if (!hasClass(classInfo.className)) {
 								this.setState({
 									status: "NOT_OWNED",
 								});
-							} else if (getEquippedClass() === className) {
+							} else if (getEquippedClass() === classInfo.className) {
 								this.setState({
 									status: "EQUIPPED",
 								});
@@ -57,7 +69,7 @@ export default class ClassShop extends Roact.Component<object, State> {
 								});
 							}
 
-							if (this.state.selectedClass === className) {
+							if (this.state.selectedClass === classInfo.className) {
 								this.setState({
 									selectedClass: "None",
 								});
@@ -66,7 +78,7 @@ export default class ClassShop extends Roact.Component<object, State> {
 							}
 
 							this.setState({
-								selectedClass: className,
+								selectedClass: classInfo.className,
 							});
 						},
 					}}
