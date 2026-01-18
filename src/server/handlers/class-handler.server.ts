@@ -12,6 +12,11 @@ buyClassFunction.OnServerInvoke = (player, classType) => {
 	const classData = getClassData(classType as string);
 
 	if (userData !== undefined && classData !== undefined) {
+		if (classData.enabled === false) {
+			warn("Class is disabled", classData.class);
+			return false;
+		}
+
 		if (!userData.owned_classes.includes(classType as string)) {
 			if (userData.bwambles >= classData.price) {
 				const success = updateCachedUser(player.UserId, {
@@ -36,6 +41,11 @@ equipClassFunction.OnServerInvoke = (player, classType) => {
 	const classData = getClassData(classType as string);
 
 	if (userData !== undefined && classData !== undefined) {
+		if (classData.enabled === false) {
+			warn("Class is disabled", classData.class);
+			return false;
+		}
+
 		if (userData.owned_classes.includes(classType as string)) {
 			const success = updateCachedUser(player.UserId, {
 				class: classType as string,
