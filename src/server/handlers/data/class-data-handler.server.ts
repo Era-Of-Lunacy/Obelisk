@@ -13,16 +13,12 @@ const client = new SupabaseClient(
 const result = client.from("classes").select("*").execute<Classes[]>();
 
 if (result.success === true && result.data !== undefined) {
-	let loadedCount = 0;
-
 	for (const classData of result.data as unknown as Classes[]) {
 		if (classData.enabled === true) {
 			cachedClasses[classData.class] = classData;
 			classUpdatedEvent.Fire(DatabaseEvents.Created, classData);
-			loadedCount += 1;
 		}
 	}
-	print(`Loaded ${loadedCount} classes`);
 } else {
 	warn("Failed to load classes from database");
 }
