@@ -45,6 +45,18 @@ userUpdatedEvent.Connect((event, data) => {
 		if (player) {
 			userUpdatedRemoteEvent.FireClient(player, data);
 		}
+	} else if (event === DatabaseEvents.Created) {
+		const player = Players.GetPlayerByUserId(data.id);
+
+		if (player) {
+			userUpdatedRemoteEvent.FireClient(player, data);
+		}
+	} else if (event === DatabaseEvents.Deleted) {
+		const player = Players.GetPlayerByUserId(data.id);
+
+		if (player) {
+			userUpdatedRemoteEvent.FireClient(player, data);
+		}
 	}
 });
 
