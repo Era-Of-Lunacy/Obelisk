@@ -1,6 +1,6 @@
 import { Players, ReplicatedStorage } from "@rbxts/services";
 import { getUser, userUpdatedEvent } from "server/handlers/data/users/user-data";
-import { DatabaseEvents } from "server/types/database";
+import { DatabaseEvents } from "shared/types/database";
 import { Class } from "shared/types/classes";
 import { User } from "shared/types/users";
 import { WaitForPath } from "shared/utils/path";
