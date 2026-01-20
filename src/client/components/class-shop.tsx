@@ -1,12 +1,6 @@
-import Roact from "@rbxts/roact";
-import {
-	buyClass,
-	equipClass,
-	getEquippedClass,
-	getClassData,
-	hasClass,
-	unequipClass,
-} from "client/handlers/class-handler";
+import React, { Component, Element, ReactComponent } from "@rbxts/react";
+import { buyClass, equipClass, getEquippedClass, hasClass, unequipClass } from "client/handlers/class-handler";
+import { getAllClasses, getClass } from "client/handlers/data/classes/class-data";
 
 interface State {
 	selectedClass: string;
@@ -20,46 +14,32 @@ const ASSETS = {
 	UNEQUIP_BUTTON: "rbxassetid://74393977413624",
 };
 
-export default class ClassShop extends Roact.Component<object, State> {
-	constructor(props: object) {
-		super(props);
-
-		this.state = {
-			selectedClass: "None",
-			status: "NOT_OWNED",
-		};
-	}
+@ReactComponent
+export class ClassShop extends Component<object, State> {
+	state: State = {
+		selectedClass: "None",
+		status: "NOT_OWNED",
+	};
 
 	render() {
-		const classButtons: Roact.Element[] = [];
-		const classes = getClassData();
+		const classButtons: Element[] = [];
+		const classes = getAllClasses();
 
-		const classesArray = [];
-		for (const [className, classInfo] of pairs(classes)) {
-			classesArray.push({
-				...classInfo,
-				className: className,
-			});
-		}
-
-		table.sort(classesArray, (a, b) => {
-			return (a?.price ?? 0) < (b?.price ?? 0);
-		});
-
-		for (const classInfo of classesArray) {
-			if (classInfo.icon_image_id === undefined || classInfo.enabled === false) continue;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		for (const [_, value] of pairs(classes)) {
+			if (value.enabled !== true) continue;
 
 			classButtons.push(
 				<imagebutton
-					Image={classInfo.icon_image_id}
+					Image={value.icon_image_id}
 					BackgroundTransparency={1}
 					Event={{
 						Activated: () => {
-							if (!hasClass(classInfo.className)) {
+							if (!hasClass(value.class)) {
 								this.setState({
 									status: "NOT_OWNED",
 								});
-							} else if (getEquippedClass() === classInfo.className) {
+							} else if (getEquippedClass() === value.class) {
 								this.setState({
 									status: "EQUIPPED",
 								});
@@ -69,7 +49,7 @@ export default class ClassShop extends Roact.Component<object, State> {
 								});
 							}
 
-							if (this.state.selectedClass === classInfo.className) {
+							if (this.state.selectedClass === value.class) {
 								this.setState({
 									selectedClass: "None",
 								});
@@ -78,7 +58,7 @@ export default class ClassShop extends Roact.Component<object, State> {
 							}
 
 							this.setState({
-								selectedClass: classInfo.className,
+								selectedClass: value.class,
 							});
 						},
 					}}
@@ -120,12 +100,12 @@ export default class ClassShop extends Roact.Component<object, State> {
 					</imagelabel>
 					{selectedClass !== "None" &&
 					selectedClass !== undefined &&
-					getClassData()[selectedClass]?.full_image_id !== undefined ? (
+					getClass(selectedClass)?.full_image_id !== undefined ? (
 						<imagelabel
 							Size={new UDim2(0.6, 0, 1.2, 0)}
 							Position={new UDim2(1, 0, 0.5, 0)}
 							AnchorPoint={new Vector2(1, 0.5)}
-							Image={getClassData()[selectedClass].full_image_id}
+							Image={getClass(selectedClass).full_image_id}
 							BackgroundTransparency={1}
 						>
 							<imagebutton
