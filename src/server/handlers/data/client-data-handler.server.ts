@@ -6,21 +6,25 @@ import { Users } from "shared/types/users";
 import { WaitForPath } from "shared/utils/path";
 import { classUpdatedEvent, getAllClassData } from "./class-data";
 
-const clientReadyEvent = WaitForPath(ReplicatedStorage, "remote-events/client-ready") as RemoteEvent;
+const clientReadyEvent = WaitForPath<RemoteEvent>(ReplicatedStorage, "remote-events/client-ready");
 
-const userUpdatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/user-updated") as RemoteEvent<
-	(data: Partial<Users>) => void
->;
+const userUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: Users) => void>>(
+	ReplicatedStorage,
+	"remote-events/user-updated",
+);
 
-const classCreatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-created") as RemoteEvent<
-	(data: Partial<Classes>) => void
->;
-const classUpdatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-updated") as RemoteEvent<
-	(data: Partial<Classes>) => void
->;
-const classDeletedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-deleted") as RemoteEvent<
-	(data: Partial<Classes>) => void
->;
+const classCreatedRemoteEvent = WaitForPath<RemoteEvent<(data: Classes) => void>>(
+	ReplicatedStorage,
+	"remote-events/class-created",
+);
+const classUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: Classes) => void>>(
+	ReplicatedStorage,
+	"remote-events/class-updated",
+);
+const classDeletedRemoteEvent = WaitForPath<RemoteEvent<(data: Classes) => void>>(
+	ReplicatedStorage,
+	"remote-events/class-deleted",
+);
 
 clientReadyEvent.OnServerEvent.Connect((player) => {
 	const userData = getUserData(player.UserId);

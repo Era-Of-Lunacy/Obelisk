@@ -8,16 +8,16 @@ const equipClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remot
 const unequipClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/unequip-class");
 
 const classCreatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-created") as RemoteEvent<
-	(data: Partial<Classes> & { class: string }) => void
+	(data: Classes & { class: string }) => void
 >;
 const classUpdatedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-updated") as RemoteEvent<
-	(data: Partial<Classes> & { class: string }) => void
+	(data: Classes & { class: string }) => void
 >;
 const classDeletedRemoteEvent = WaitForPath(ReplicatedStorage, "remote-events/class-deleted") as RemoteEvent<
-	(data: Partial<Classes> & { class: string }) => void
+	(data: Classes & { class: string }) => void
 >;
 
-const classData: Record<string, Partial<Classes>> = {};
+const classData: Record<string, Classes> = {};
 
 classCreatedRemoteEvent.OnClientEvent.Connect((data) => {
 	if (data && data.class) {
@@ -37,11 +37,11 @@ classDeletedRemoteEvent.OnClientEvent.Connect((data) => {
 	}
 });
 
-export function getClassData(): Record<string, Partial<Classes>> {
+export function getClassData(): Record<string, Classes> {
 	return classData;
 }
 
-export function getClass(className: string): Partial<Classes> | undefined {
+export function getClass(className: string): Classes | undefined {
 	return classData[className];
 }
 
