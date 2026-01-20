@@ -1,6 +1,6 @@
 import { DatabaseEvents } from "server/types/database";
-import { userUpdatedEvent } from "server/handlers/data/user-data";
-import { Users } from "shared/types/users";
+import { userUpdatedEvent } from "server/handlers/data/users/user-data";
+import { User } from "shared/types/users";
 import { Players } from "@rbxts/services";
 
 const playerLeaderstats = new Map<Player, [IntValue, StringValue]>();
@@ -21,7 +21,7 @@ function createLeaderstats(player: Player) {
 	playerLeaderstats.set(player, [bwambles, classType]);
 }
 
-function updateLeaderstats(player: Player, data: Users) {
+function updateLeaderstats(player: Player, data: User) {
 	if (playerLeaderstats.has(player)) {
 		const leaderstats = playerLeaderstats.get(player)!;
 		leaderstats[0].Value = data.bwambles;
