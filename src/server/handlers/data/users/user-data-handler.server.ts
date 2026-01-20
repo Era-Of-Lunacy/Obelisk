@@ -2,7 +2,7 @@ import { SupabaseClient } from "@rbxts/roblox-postgrest";
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
 import { User, Users } from "shared/types/users";
-import { cachedUsers, userUpdatedEvent } from "./user-data";
+import { getUserData, setUser, updateUser, deleteUser, userUpdatedEvent } from "server/handlers/data/users/user-data";
 import { DatabaseEvents } from "server/types/database";
 
 const client = new SupabaseClient(
@@ -21,12 +21,12 @@ Players.PlayerAdded.Connect((player) => {
 			}
 
 			if (result.data.deleted_at === undefined || result.data.deleted_at === "") {
-				cachedUsers[player.UserId] = result.data;
+				setUser(player.UserId, result.data);
 				userUpdatedEvent.Fire(DatabaseEvents.Created, result.data);
 
 				if (client.from("users").eq("id", player.UserId).update({ is_playing: true }).success === false) {
 					player.Kick("Failed to update user data");
-					delete cachedUsers[player.UserId];
+					deleteUser(player.UserId);
 					userUpdatedEvent.Fire(DatabaseEvents.Deleted, result.data);
 					return;
 				}
@@ -41,7 +41,7 @@ Players.PlayerAdded.Connect((player) => {
 
 			if (insertResult.success === true && insertResult.data?.[0]) {
 				print("User created successfully");
-				cachedUsers[player.UserId] = insertResult.data[0];
+				setUser(player.UserId, insertResult.data[0]);
 				userUpdatedEvent.Fire(DatabaseEvents.Created, insertResult.data[0]);
 				return;
 			} else {
@@ -53,19 +53,19 @@ Players.PlayerAdded.Connect((player) => {
 });
 
 Players.PlayerRemoving.Connect((player) => {
-	if (cachedUsers[player.UserId]) {
-		cachedUsers[player.UserId].is_playing = false;
+	if (getUserData(player.UserId)) {
+		updateUser(player.UserId, { is_playing: false });
 
 		if (
 			client
 				.from("users")
 				.eq("id", player.UserId)
-				.update({ ...cachedUsers[player.UserId] }).success === false
+				.update({ ...getUserData(player.UserId) }).success === false
 		) {
 			print("Failed to update user data");
 		}
 
-		delete cachedUsers[player.UserId];
-		userUpdatedEvent.Fire(DatabaseEvents.Deleted, cachedUsers[player.UserId]);
+		deleteUser(player.UserId);
+		userUpdatedEvent.Fire(DatabaseEvents.Deleted, getUserData(player.UserId)!);
 	}
 });
