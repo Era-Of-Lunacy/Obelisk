@@ -1,25 +1,34 @@
 import { ReplicatedStorage } from "@rbxts/services";
-import { getClassData } from "server/handlers/data/classes/class-data";
-import { getUserData, updateUser as updateCachedUser } from "server/handlers/data/users/user-data";
+import { getClass } from "server/handlers/data/classes/class-data";
+import { getUser, updateUser } from "server/handlers/data/users/user-data";
 import { WaitForPath } from "shared/utils/path";
 
-const buyClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/buy-class");
-const equipClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/equip-class");
-const unequipClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/unequip-class");
+const buyClassFunction = WaitForPath<RemoteFunction<(classType: string) => boolean>>(
+	ReplicatedStorage,
+	"remote-functions/buy-class",
+);
+const equipClassFunction = WaitForPath<RemoteFunction<(classType: string) => boolean>>(
+	ReplicatedStorage,
+	"remote-functions/equip-class",
+);
+const unequipClassFunction = WaitForPath<RemoteFunction<() => boolean>>(
+	ReplicatedStorage,
+	"remote-functions/unequip-class",
+);
 
 buyClassFunction.OnServerInvoke = (player, classType) => {
-	const userData = getUserData(player.UserId);
-	const classData = getClassData(classType as string);
+	const userData = getUser(player.UserId);
+	const classData = getClass(classType as string);
 
 	if (userData !== undefined && classData !== undefined) {
-		if (classData.enabled === false) {
+		if (classData.enabled !== true) {
 			warn("Class is disabled", classData.class);
 			return false;
 		}
 
 		if (!userData.owned_classes.includes(classType as string)) {
 			if (userData.bwambles >= classData.price) {
-				const success = updateCachedUser(player.UserId, {
+				const success = updateUser(player.UserId, {
 					bwambles: userData.bwambles - classData.price,
 					owned_classes: [...userData.owned_classes, classType as string],
 				});
@@ -37,17 +46,17 @@ buyClassFunction.OnServerInvoke = (player, classType) => {
 };
 
 equipClassFunction.OnServerInvoke = (player, classType) => {
-	const userData = getUserData(player.UserId);
-	const classData = getClassData(classType as string);
+	const userData = getUser(player.UserId);
+	const classData = getClass(classType as string);
 
 	if (userData !== undefined && classData !== undefined) {
-		if (classData.enabled === false) {
+		if (classData.enabled !== true) {
 			warn("Class is disabled", classData.class);
 			return false;
 		}
 
 		if (userData.owned_classes.includes(classType as string)) {
-			const success = updateCachedUser(player.UserId, {
+			const success = updateUser(player.UserId, {
 				class: classType as string,
 			});
 
@@ -63,10 +72,10 @@ equipClassFunction.OnServerInvoke = (player, classType) => {
 };
 
 unequipClassFunction.OnServerInvoke = (player) => {
-	const userData = getUserData(player.UserId);
+	const userData = getUser(player.UserId);
 
 	if (userData !== undefined) {
-		const success = updateCachedUser(player.UserId, {
+		const success = updateUser(player.UserId, {
 			class: "None",
 		});
 
