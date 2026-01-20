@@ -62,6 +62,7 @@ export class ClassShop extends Component<object, State> {
 							});
 						},
 					}}
+					LayoutOrder={value.price}
 				>
 					<uiaspectratioconstraint AspectRatio={1} DominantAxis="Height" />
 				</imagebutton>,
@@ -94,7 +95,11 @@ export class ClassShop extends Component<object, State> {
 							AutomaticCanvasSize="Y"
 							ScrollBarImageColor3={new Color3(0, 0, 0)}
 						>
-							<uigridlayout CellSize={new UDim2(0.4, 0, 0.4, 0)} HorizontalAlignment="Center" />
+							<uigridlayout
+								CellSize={new UDim2(0.4, 0, 0.4, 0)}
+								HorizontalAlignment="Center"
+								SortOrder="LayoutOrder"
+							/>
 							{classButtons}
 						</scrollingframe>
 					</imagelabel>
