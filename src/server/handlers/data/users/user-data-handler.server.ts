@@ -2,8 +2,7 @@ import { SupabaseClient } from "@rbxts/roblox-postgrest";
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
 import { User, Users } from "shared/types/users";
-import { getUserData, setUser, updateUser, deleteUser, userUpdatedEvent } from "server/handlers/data/users/user-data";
-import { DatabaseEvents } from "server/types/database";
+import { getUser, setUser, updateUser, deleteUser } from "server/handlers/data/users/user-data";
 
 const client = new SupabaseClient(
 	`https://${$env.string("PROJECT_ID")}.supabase.co`,
@@ -22,12 +21,10 @@ Players.PlayerAdded.Connect((player) => {
 
 			if (result.data.deleted_at === undefined || result.data.deleted_at === "") {
 				setUser(player.UserId, result.data);
-				userUpdatedEvent.Fire(DatabaseEvents.Created, result.data);
 
 				if (client.from("users").eq("id", player.UserId).update({ is_playing: true }).success === false) {
 					player.Kick("Failed to update user data");
 					deleteUser(player.UserId);
-					userUpdatedEvent.Fire(DatabaseEvents.Deleted, result.data);
 					return;
 				}
 			} else {
@@ -42,7 +39,6 @@ Players.PlayerAdded.Connect((player) => {
 			if (insertResult.success === true && insertResult.data?.[0]) {
 				print("User created successfully");
 				setUser(player.UserId, insertResult.data[0]);
-				userUpdatedEvent.Fire(DatabaseEvents.Created, insertResult.data[0]);
 				return;
 			} else {
 				player.Kick("Failed to create user");
@@ -53,19 +49,18 @@ Players.PlayerAdded.Connect((player) => {
 });
 
 Players.PlayerRemoving.Connect((player) => {
-	if (getUserData(player.UserId)) {
+	if (getUser(player.UserId)) {
 		updateUser(player.UserId, { is_playing: false });
 
 		if (
 			client
 				.from("users")
 				.eq("id", player.UserId)
-				.update({ ...getUserData(player.UserId) }).success === false
+				.update({ ...getUser(player.UserId) }).success === false
 		) {
 			print("Failed to update user data");
 		}
 
 		deleteUser(player.UserId);
-		userUpdatedEvent.Fire(DatabaseEvents.Deleted, getUserData(player.UserId)!);
 	}
 });

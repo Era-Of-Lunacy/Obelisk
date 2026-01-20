@@ -12,7 +12,11 @@ export function setUser(id: number, data: User): boolean {
 	return true;
 }
 
-export function getUserData(id: number): User | undefined {
+export function getAllUsers(): Record<number, User> {
+	return cachedUsers;
+}
+
+export function getUser(id: number): User | undefined {
 	return cachedUsers[id];
 }
 

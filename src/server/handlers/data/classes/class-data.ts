@@ -12,7 +12,7 @@ export function setClass(className: string, classData: Class): boolean {
 	return true;
 }
 
-export function getAllClassData(): Record<string, Class> {
+export function getAllClasses(): Record<string, Class> {
 	return cachedClasses;
 }
 
