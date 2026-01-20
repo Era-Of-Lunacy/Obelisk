@@ -1,75 +1,46 @@
 import { Players, ReplicatedStorage } from "@rbxts/services";
-import { getUserData, userUpdatedEvent } from "server/handlers/data/users/user-data";
+import { getUser, userUpdatedEvent } from "server/handlers/data/users/user-data";
 import { DatabaseEvents } from "server/types/database";
 import { Class } from "shared/types/classes";
 import { User } from "shared/types/users";
 import { WaitForPath } from "shared/utils/path";
-import { classUpdatedEvent, getAllClassData } from "server/handlers/data/classes/class-data";
+import { getAllClasses, classUpdatedEvent } from "server/handlers/data/classes/class-data";
 
 const clientReadyEvent = WaitForPath<RemoteEvent>(ReplicatedStorage, "remote-events/client-ready");
 
-const userUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: User) => void>>(
+const userUpdatedRemoteEvent = WaitForPath<RemoteEvent<(event: DatabaseEvents, data: User) => void>>(
 	ReplicatedStorage,
 	"remote-events/user-updated",
 );
-
-const classCreatedRemoteEvent = WaitForPath<RemoteEvent<(data: Class) => void>>(
-	ReplicatedStorage,
-	"remote-events/class-created",
-);
-const classUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: Class) => void>>(
+const classUpdatedRemoteEvent = WaitForPath<RemoteEvent<(event: DatabaseEvents, data: Class) => void>>(
 	ReplicatedStorage,
 	"remote-events/class-updated",
 );
-const classDeletedRemoteEvent = WaitForPath<RemoteEvent<(data: Class) => void>>(
-	ReplicatedStorage,
-	"remote-events/class-deleted",
-);
 
 clientReadyEvent.OnServerEvent.Connect((player) => {
-	const userData = getUserData(player.UserId);
-	const classData = getAllClassData();
+	const userData = getUser(player.UserId);
+	const classData = getAllClasses();
 
 	if (userData !== undefined) {
-		userUpdatedRemoteEvent.FireClient(player, userData);
+		userUpdatedRemoteEvent.FireClient(player, DatabaseEvents.Created, userData);
 	}
 
 	if (classData !== undefined) {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const [_, classInfo] of pairs(classData)) {
-			classCreatedRemoteEvent.FireClient(player, classInfo);
+			classUpdatedRemoteEvent.FireClient(player, DatabaseEvents.Created, classInfo);
 		}
 	}
 });
 
 userUpdatedEvent.Connect((event, data) => {
-	if (event === DatabaseEvents.Updated) {
-		const player = Players.GetPlayerByUserId(data.id);
+	const player = Players.GetPlayerByUserId(data.id);
 
-		if (player) {
-			userUpdatedRemoteEvent.FireClient(player, data);
-		}
-	} else if (event === DatabaseEvents.Created) {
-		const player = Players.GetPlayerByUserId(data.id);
-
-		if (player) {
-			userUpdatedRemoteEvent.FireClient(player, data);
-		}
-	} else if (event === DatabaseEvents.Deleted) {
-		const player = Players.GetPlayerByUserId(data.id);
-
-		if (player) {
-			userUpdatedRemoteEvent.FireClient(player, data);
-		}
+	if (player) {
+		userUpdatedRemoteEvent.FireClient(player, event, data);
 	}
 });
 
 classUpdatedEvent.Connect((event, data) => {
-	if (event === DatabaseEvents.Updated) {
-		classUpdatedRemoteEvent.FireAllClients(data);
-	} else if (event === DatabaseEvents.Created) {
-		classCreatedRemoteEvent.FireAllClients(data);
-	} else if (event === DatabaseEvents.Deleted) {
-		classDeletedRemoteEvent.FireAllClients(data);
-	}
+	classUpdatedRemoteEvent.FireAllClients(event, data);
 });
