@@ -2,18 +2,18 @@ import { SupabaseClient } from "@rbxts/roblox-postgrest";
 import { $env } from "rbxts-transform-env";
 import { SupabaseStream, SupabaseRealtimeEvent } from "server/database/supabase";
 import { DatabaseEvents } from "server/types/database";
-import { Classes } from "shared/types/classes";
-import { cachedClasses, classUpdatedEvent } from "server/handlers/data/class-data";
+import { Class } from "shared/types/classes";
+import { cachedClasses, classUpdatedEvent } from "server/handlers/data/classes/class-data";
 
 const client = new SupabaseClient(
 	`https://${$env.string("PROJECT_ID")}.supabase.co`,
 	$env.string("SECRET_API_KEY", ""),
 );
 
-const result = client.from("classes").select("*").execute<Classes[]>();
+const result = client.from("classes").select("*").execute<Class>();
 
 if (result.success === true && result.data !== undefined) {
-	for (const classData of result.data as unknown as Classes[]) {
+	for (const classData of result.data) {
 		if (classData.enabled === true) {
 			cachedClasses[classData.class] = classData;
 			classUpdatedEvent.Fire(DatabaseEvents.Created, classData);
@@ -29,7 +29,7 @@ const wsUrl = `wss://${$env.string("PROJECT_ID")}.supabase.co/realtime/v1/websoc
 )}`;
 const stream = new SupabaseStream(wsUrl);
 
-stream.join<Classes>("classes", (event: SupabaseRealtimeEvent<Classes>) => {
+stream.join<Class>("classes", (event: SupabaseRealtimeEvent<Class>) => {
 	const recordType = event.payload.data.type;
 	const record = event.payload.data.record;
 	const className = record.class;
