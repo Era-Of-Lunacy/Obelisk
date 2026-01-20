@@ -1,4 +1,6 @@
-export interface Users {
+export type Users = Record<number, User>;
+
+export interface User {
 	id: number;
 	class: string;
 	owned_classes: string[];
