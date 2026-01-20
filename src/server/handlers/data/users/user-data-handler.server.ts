@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@rbxts/roblox-postgrest";
 import { Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
-import { Users } from "shared/types/users";
+import { User, Users } from "shared/types/users";
 import { cachedUsers, userUpdatedEvent } from "./user-data";
 import { DatabaseEvents } from "server/types/database";
 
@@ -11,7 +11,7 @@ const client = new SupabaseClient(
 );
 
 Players.PlayerAdded.Connect((player) => {
-	const result = client.from("users").eq("id", player.UserId).maybeSingle<Users>();
+	const result = client.from("users").eq("id", player.UserId).maybeSingle<User>();
 
 	if (result.success === true) {
 		if (result.data !== undefined) {
@@ -37,7 +37,7 @@ Players.PlayerAdded.Connect((player) => {
 		} else {
 			print("User not found Creating...");
 
-			const insertResult = client.from("users").insert<Users[]>({ id: player.UserId, is_playing: true });
+			const insertResult = client.from("users").insert<Users>({ id: player.UserId, is_playing: true });
 
 			if (insertResult.success === true && insertResult.data?.[0]) {
 				print("User created successfully");
