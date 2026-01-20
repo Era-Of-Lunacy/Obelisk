@@ -1,27 +1,27 @@
 import { Players, ReplicatedStorage } from "@rbxts/services";
-import { getUserData, userUpdatedEvent } from "server/handlers/data/user-data";
+import { getUserData, userUpdatedEvent } from "server/handlers/data/users/user-data";
 import { DatabaseEvents } from "server/types/database";
-import { Classes } from "shared/types/classes";
-import { Users } from "shared/types/users";
+import { Class } from "shared/types/classes";
+import { User } from "shared/types/users";
 import { WaitForPath } from "shared/utils/path";
-import { classUpdatedEvent, getAllClassData } from "./class-data";
+import { classUpdatedEvent, getAllClassData } from "server/handlers/data/classes/class-data";
 
 const clientReadyEvent = WaitForPath<RemoteEvent>(ReplicatedStorage, "remote-events/client-ready");
 
-const userUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: Users) => void>>(
+const userUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: User) => void>>(
 	ReplicatedStorage,
 	"remote-events/user-updated",
 );
 
-const classCreatedRemoteEvent = WaitForPath<RemoteEvent<(data: Classes) => void>>(
+const classCreatedRemoteEvent = WaitForPath<RemoteEvent<(data: Class) => void>>(
 	ReplicatedStorage,
 	"remote-events/class-created",
 );
-const classUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: Classes) => void>>(
+const classUpdatedRemoteEvent = WaitForPath<RemoteEvent<(data: Class) => void>>(
 	ReplicatedStorage,
 	"remote-events/class-updated",
 );
-const classDeletedRemoteEvent = WaitForPath<RemoteEvent<(data: Classes) => void>>(
+const classDeletedRemoteEvent = WaitForPath<RemoteEvent<(data: Class) => void>>(
 	ReplicatedStorage,
 	"remote-events/class-deleted",
 );
