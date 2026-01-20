@@ -1,5 +1,5 @@
 import Signal from "@rbxts/signal";
-import { DatabaseEvents } from "server/types/database";
+import { DatabaseEvents } from "shared/types/database";
 import { User } from "shared/types/users";
 
 const cachedUsers: Record<number, User> = {};

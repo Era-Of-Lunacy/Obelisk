@@ -1,4 +1,4 @@
-import { DatabaseEvents } from "server/types/database";
+import { DatabaseEvents } from "shared/types/database";
 import { userUpdatedEvent } from "server/handlers/data/users/user-data";
 import { User } from "shared/types/users";
 import { Players } from "@rbxts/services";
