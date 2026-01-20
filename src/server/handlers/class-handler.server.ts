@@ -1,6 +1,6 @@
 import { ReplicatedStorage } from "@rbxts/services";
-import { getClassData } from "server/handlers/data/class-data";
-import { getUserData, updateUser as updateCachedUser } from "server/handlers/data/user-data";
+import { getClassData } from "server/handlers/data/classes/class-data";
+import { getUserData, updateUser as updateCachedUser } from "server/handlers/data/users/user-data";
 import { WaitForPath } from "shared/utils/path";
 
 const buyClassFunction = WaitForPath<RemoteFunction>(ReplicatedStorage, "remote-functions/buy-class");
