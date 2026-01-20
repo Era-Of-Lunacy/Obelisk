@@ -1,5 +1,6 @@
 import { Class, Classes } from "shared/types/classes";
-let classesData: Classes;
+
+const classesData: Classes = {};
 
 export function getAllClasses() {
 	return classesData;
