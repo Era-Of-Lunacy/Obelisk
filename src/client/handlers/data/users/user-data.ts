@@ -2,10 +2,10 @@ import { User } from "shared/types/users";
 
 let userData: User;
 
-export function getUserData() {
+export function getUser() {
 	return userData;
 }
 
-export function setUserData(data: User) {
+export function setUser(data: User) {
 	userData = data;
 }
