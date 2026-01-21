@@ -8,12 +8,12 @@ const SPRINT_FIELD_OF_VIEW_MULTIPLIER = 120;
 
 const camera = Workspace.CurrentCamera;
 
-if (Players.LocalPlayer.Character) {
-	handleSprint(Players.LocalPlayer.Character);
-}
+Players.PlayerAdded.Connect((player) => {
+	if (player !== Players.LocalPlayer) return;
 
-Players.LocalPlayer.CharacterAdded.Connect((character) => {
-	handleSprint(character);
+	player.CharacterAdded.Connect(handleSprint);
+
+	if (player.Character) handleSprint(player.Character);
 });
 
 function handleSprint(character: Model) {
