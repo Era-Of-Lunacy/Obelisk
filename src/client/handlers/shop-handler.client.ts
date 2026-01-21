@@ -9,14 +9,6 @@ const SHOP_PART_PATH = "Lobby/Details/ShopPart";
 let shopMounted = false;
 let root: ReturnType<typeof createRoot> | undefined;
 
-Players.PlayerAdded.Connect((player) => {
-	if (player !== Players.LocalPlayer) return;
-
-	player.CharacterAdded.Connect(handleShop);
-
-	if (player.Character) handleShop(player.Character);
-});
-
 function handleShop(character: Model) {
 	const humanoidRootPart = character.WaitForChild("HumanoidRootPart") as BasePart;
 
@@ -47,3 +39,6 @@ function handleShop(character: Model) {
 		}
 	});
 }
+
+if (Players.LocalPlayer.Character) handleShop(Players.LocalPlayer.Character);
+Players.LocalPlayer.CharacterAdded.Connect((character) => handleShop(character));
