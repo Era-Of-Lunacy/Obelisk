@@ -10,7 +10,15 @@ let shopMounted = false;
 let root: ReturnType<typeof createRoot> | undefined;
 
 Players.LocalPlayer.CharacterAdded.Connect((character) => {
-	const humanoidRootPart = character.FindFirstChild("HumanoidRootPart") as BasePart;
+	handleShop(character);
+});
+
+if (Players.LocalPlayer.Character) {
+	handleShop(Players.LocalPlayer.Character);
+}
+
+function handleShop(character: Model) {
+	const humanoidRootPart = character.WaitForChild("HumanoidRootPart") as BasePart;
 
 	const params = new OverlapParams();
 	params.FilterType = Enum.RaycastFilterType.Include;
@@ -38,4 +46,4 @@ Players.LocalPlayer.CharacterAdded.Connect((character) => {
 			}
 		}
 	});
-});
+}
