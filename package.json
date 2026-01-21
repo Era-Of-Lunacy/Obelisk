@@ -13,7 +13,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@rbxts/compiler-types": "^3.0.0-types.0",
-    "@rbxts/types": "^1.0.896",
+    "@rbxts/types": "^1.0.902",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "@typescript-eslint/parser": "^8.52.0",
     "eslint": "^9.39.2",
