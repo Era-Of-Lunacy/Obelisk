@@ -1,12 +1,12 @@
 import { Players, RunService, UserInputService, Workspace } from "@rbxts/services";
 
-const camera = Workspace.CurrentCamera;
-
 const WALK_SPEED = 16;
 const SPRINT_SPEED = 32;
 const WALK_FIELD_OF_VIEW = 70;
 const SPRINT_FIELD_OF_VIEW = 90;
 const FIELD_OF_VIEW_SPEED = 120;
+
+const camera = Workspace.CurrentCamera;
 
 let currentHumanoid: Humanoid;
 let sprinting = false;
