@@ -31,6 +31,7 @@ Players.LocalPlayer.CharacterAdded.Connect((character) => {
 	currentHumanoidRootPart = humanoidRootPart;
 });
 
+// Maybe I need to refactor this code by using Touched Event IDK
 RunService.Heartbeat.Connect(() => {
 	if (!currentHumanoidRootPart) return;
 
