@@ -107,7 +107,7 @@ export default class UserDataService implements OnStart {
 						.from("users")
 						// We've already checked if cache.data exists in line 84
 						// And cache.data cannot be undefined due to "loading" flag
-						.update(cache.data!)
+						.update({ ...cache.data!, is_playing: false })
 						.eq("id", player.UserId)
 						.execute()
 						.andThen((response) => {
