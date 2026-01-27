@@ -4,3 +4,4 @@
 *.tsbuildinfo
 *.env
 flamework.build
+sourcemap.json
