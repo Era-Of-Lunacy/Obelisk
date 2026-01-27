@@ -6,6 +6,7 @@ import { DataCache } from "server/types/data";
 import { Database } from "shared/types/database.types";
 
 export type User = Database["public"]["Tables"]["users"]["Row"];
+export type UserUpdate = Database["public"]["Tables"]["users"]["Update"];
 
 const SAVE_INTERVAL = 60;
 const RETRY_COUNT = 10;
@@ -137,6 +138,23 @@ export default class UserDataService implements OnStart {
 				this.saveData(player);
 			}
 		}
+	}
+
+	getData(player: Player): User | undefined {
+		return this.cachedUserData.get(player.UserId)?.data;
+	}
+
+	updateData(player: Player, data: UserUpdate): boolean {
+		const cache = this.cachedUserData.get(player.UserId);
+
+		if (cache === undefined || cache.data === undefined) return false;
+
+		cache.data = {
+			...cache.data,
+			...data,
+		};
+
+		return true;
 	}
 
 	onStart(): void {
