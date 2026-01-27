@@ -1,4 +1,4 @@
 export interface DataCache<T> {
 	status: "loading" | "saving" | "ready";
-	data: T;
+	data: T | undefined;
 }
