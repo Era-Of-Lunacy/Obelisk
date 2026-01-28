@@ -1,10 +1,16 @@
 import { Networking } from "@flamework/networking";
 import { Database } from "shared/types/database.types";
 
-type User = Database["public"]["Tables"]["users"]["Row"];
+type UserUpdate = Database["public"]["Tables"]["users"]["Update"];
 
-interface ClientToServerFunctions {
-	getUserData(): User | undefined;
+interface ClientToServerEvents {
+	clientReady(): void;
+	userDataUpdated(data: UserUpdate): void;
 }
 
-export const GlobalDataFunctions = Networking.createFunction<ClientToServerFunctions, undefined>();
+interface ServerToClientEvents {
+	clientReady(): void;
+	userDataUpdated(data: UserUpdate): void;
+}
+
+export const GlobalDataEvents = Networking.createEvent<ClientToServerEvents, ServerToClientEvents>();

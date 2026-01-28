@@ -3,7 +3,7 @@ import { SupabaseClient } from "@rbxts/roblox-supabase";
 import { HttpService, Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
 import { DataCache } from "server/types/data";
-import { GlobalDataFunctions } from "shared/networking/Data";
+import { GlobalDataEvents } from "shared/networking/Data";
 import { Database } from "shared/types/database.types";
 
 export type User = Database["public"]["Tables"]["users"]["Row"];
@@ -18,7 +18,7 @@ export default class UserDataService implements OnStart {
 	private supabase: SupabaseClient<Database>;
 	private cachedUserData: Map<number, DataCache<User>> = new Map();
 	private dirtyFlags: Set<number> = new Set();
-	private remoteFunctions = GlobalDataFunctions.createServer({});
+	private remoteEvents = GlobalDataEvents.createServer({});
 
 	constructor() {
 		this.supabase = new SupabaseClient<Database>(
@@ -60,6 +60,8 @@ export default class UserDataService implements OnStart {
 							status: "ready",
 							data: resolve.data,
 						});
+
+						this.remoteEvents.userDataUpdated.fire(player, resolve.data);
 					}),
 			RETRY_COUNT,
 			RETRY_DELAY,
@@ -188,6 +190,8 @@ export default class UserDataService implements OnStart {
 		// Mark as dirty
 		this.dirtyFlags.add(player.UserId);
 
+		this.remoteEvents.userDataUpdated.fire(player, cache.data);
+
 		return true;
 	}
 
@@ -211,8 +215,12 @@ export default class UserDataService implements OnStart {
 			});
 		});
 
-		this.remoteFunctions.getUserData.setCallback((player) => {
-			return this.getData(player);
+		this.remoteEvents.clientReady.connect((player) => {
+			const data = this.cachedUserData.get(player.UserId);
+
+			if (data?.data) {
+				this.remoteEvents.userDataUpdated.fire(player, data.data);
+			}
 		});
 
 		task.spawn(() => {
