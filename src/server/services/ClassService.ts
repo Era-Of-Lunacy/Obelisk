@@ -1,13 +1,20 @@
 import { Service } from "@flamework/core";
 import ClassDataService, { ClassEnum } from "server/services/data/ClassDataService";
 import UserDataService from "server/services/data/UserDataService";
+import { ClassFunctions } from "shared/networking/Class";
 
 @Service()
 export default class ClassService {
+	private remoteFunctions = ClassFunctions.createServer({});
+
 	constructor(
 		private userDataService: UserDataService,
 		private classDataService: ClassDataService,
-	) {}
+	) {
+		this.remoteFunctions.buyClass.setCallback(this.buyClass);
+		this.remoteFunctions.equipClass.setCallback(this.equipClass);
+		this.remoteFunctions.unequipClass.setCallback(this.unequipClass);
+	}
 
 	private buyClass(player: Player, classId: ClassEnum): boolean {
 		const playerData = this.userDataService.getData(player);
