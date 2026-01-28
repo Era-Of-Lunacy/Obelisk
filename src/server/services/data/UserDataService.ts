@@ -99,7 +99,7 @@ export default class UserDataService implements OnStart {
 			() =>
 				this.supabase
 					.from("users")
-					.update({ ...cache.data, is_playing: false })
+					.update(cache.data!)
 					.eq("id", player.UserId)
 					.execute()
 					.andThen((response) => {
@@ -129,8 +129,31 @@ export default class UserDataService implements OnStart {
 		}
 
 		cache.status = "clearing";
-		this.cachedUserData.delete(player.UserId);
-		this.dirtyFlags.delete(player.UserId);
+
+		// Clear data
+		Promise.retryWithDelay(
+			() =>
+				this.supabase
+					.from("users")
+					.update({ is_playing: false })
+					.eq("id", player.UserId)
+					.execute()
+					.andThen((response) => {
+						if (response.error) return Promise.reject(response.error.message);
+					}),
+			RETRY_COUNT,
+			RETRY_DELAY,
+		)
+			.andThen(() => {
+				print("Cleared user data for player: ", player.UserId);
+			})
+			.catch((err) => {
+				print("Error occurred while clearing user data: ", err);
+			})
+			.finally(() => {
+				this.cachedUserData.delete(player.UserId);
+				this.dirtyFlags.delete(player.UserId);
+			});
 	}
 
 	private async saveAllData(): Promise<void> {
