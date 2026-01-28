@@ -147,7 +147,7 @@ export default class UserDataService implements OnStart {
 	updateData(player: Player, data: UserUpdate): boolean {
 		const cache = this.cachedUserData.get(player.UserId);
 
-		if (cache === undefined || cache.data === undefined) return false;
+		if (cache === undefined || cache.data === undefined || cache.status !== "ready") return false;
 
 		cache.data = {
 			...cache.data,
