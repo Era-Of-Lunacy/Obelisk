@@ -80,7 +80,10 @@ export default class UserDataService implements OnStart {
 		if (!cache || cache.status === "clearing") return;
 
 		// Skip if no dirty flags
-		if (!this.dirtyFlags.has(player.UserId)) return;
+		if (!this.dirtyFlags.has(player.UserId)) {
+			print("No dirty flags for player skipping save: ", player.UserId);
+			return;
+		}
 
 		// Wait for cache to be ready
 		while (cache.status !== "ready") {
