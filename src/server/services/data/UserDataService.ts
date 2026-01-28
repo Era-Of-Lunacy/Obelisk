@@ -143,9 +143,13 @@ export default class UserDataService implements OnStart {
 	}
 
 	private async checkUserValid(player: Player): Promise<boolean> {
-		const response = await this.supabase.from("users").select("is_playing").eq("id", player.UserId).maybeSingle();
+		const response = await this.supabase
+			.from("users")
+			.select(["is_playing", "deleted_at"])
+			.eq("id", player.UserId)
+			.maybeSingle();
 
-		if (response.data?.is_playing === false || response.data?.deleted_at !== undefined) return false;
+		if (response.data?.is_playing === true || response.data?.deleted_at !== undefined) return false;
 
 		return true;
 	}
