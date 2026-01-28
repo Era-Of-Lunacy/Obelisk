@@ -142,6 +142,14 @@ export default class UserDataService implements OnStart {
 		}
 	}
 
+	private async checkUserValid(player: Player): Promise<boolean> {
+		const response = await this.supabase.from("users").select("is_playing").eq("id", player.UserId).maybeSingle();
+
+		if (response.data?.is_playing === false || response.data?.deleted_at !== undefined) return false;
+
+		return true;
+	}
+
 	getData(player: Player): User | undefined {
 		return this.cachedUserData.get(player.UserId)?.data;
 	}
@@ -160,7 +168,9 @@ export default class UserDataService implements OnStart {
 	}
 
 	onStart(): void {
-		Players.PlayerAdded.Connect((player) => {
+		Players.PlayerAdded.Connect(async (player) => {
+			if (!(await this.checkUserValid(player))) return;
+
 			this.loadData(player);
 		});
 
