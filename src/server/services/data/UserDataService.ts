@@ -17,6 +17,7 @@ const RETRY_DELAY = 0.1;
 export default class UserDataService implements OnStart {
 	private supabase: SupabaseClient<Database>;
 	private cachedUserData: Map<number, DataCache<User>> = new Map();
+	private dirtyFlags: Set<number> = new Set();
 	private remoteFunctions = GlobalDataFunctions.createServer({});
 
 	constructor() {
@@ -26,120 +27,131 @@ export default class UserDataService implements OnStart {
 		);
 	}
 
-	private loadData(player: Player): void {
-		let cache = this.cachedUserData.get(player.UserId);
-
-		// Skip if cache is in saving
-		if (cache?.status === "saving") return;
-
-		task.spawn(() => {
-			// Wait for other process to finish loading
-			// We can loop though cache is not exist
-			while (cache?.status === "loading") {
-				task.wait();
-			}
-
-			// Set cache status to loading
-			if (cache) {
-				cache.status = "loading";
-			} else {
-				this.cachedUserData.set(player.UserId, {
-					status: "loading",
-					data: undefined,
-				});
-
-				cache = this.cachedUserData.get(player.UserId);
-			}
-
-			// Upsert data
-			Promise.retryWithDelay(
-				() =>
-					this.supabase
-						.from("users")
-						.upsert({ id: player.UserId, is_playing: true }, { returning: "representation" })
-						.single()
-						.andThen((resolve) => {
-							if (resolve.error) return Promise.reject(resolve.error);
-
-							this.cachedUserData.set(player.UserId, {
-								status: "ready",
-								data: resolve.data,
-							});
-						}),
-				RETRY_COUNT,
-				RETRY_DELAY,
-			)
-				.andThen(() => {
-					print("Loaded user data for player: ", player.UserId);
-				})
-				.catch((err) => {
-					this.cachedUserData.get(player.UserId)!.status = "error";
-
-					print("An error occurred while loading user data: ", err);
-					player.Kick("Failed to load user data");
-				});
-		});
-	}
-
-	private saveData(player: Player): void {
+	private async loadData(player: Player): Promise<void> {
 		const cache = this.cachedUserData.get(player.UserId);
 
-		// Skip if cache is already in saving or doesn't exist
-		if (!cache || cache.status === "saving") return;
+		// Skip if cache is in saving
+		if (cache?.status === "clearing") return;
 
-		task.spawn(() => {
-			// Wait for cache to be loaded
-			while (cache.status === "loading") {
-				task.wait();
-			}
+		// Wait for cache to be ready
+		while (cache?.status !== "ready") {
+			task.wait();
+		}
 
-			// Set cache status to saving
-			cache.status = "saving";
-
-			// Don't have to save data if it doesn't exist
-			if (cache.data === undefined) {
-				this.cachedUserData.delete(player.UserId);
-				return;
-			}
-
-			// Save data
-			Promise.retryWithDelay(
-				() =>
-					this.supabase
-						.from("users")
-						// We've already checked if cache.data exists in line 84
-						// And cache.data cannot be undefined due to "loading" flag
-						.update({ ...cache.data!, is_playing: false })
-						.eq("id", player.UserId)
-						.execute()
-						.andThen((response) => {
-							if (response.error) return Promise.reject(response.error);
-						}),
-				RETRY_COUNT,
-				RETRY_DELAY,
-			)
-				.andThen(() => {
-					print("Saved user data for player: ", player.UserId);
-				})
-				.catch((err) => {
-					print("Error occurred while saving user data: ", err);
-				})
-				.finally(() => {
-					// Clear cache
-					// WARN | This will cause data loss if player is not saved
-					this.cachedUserData.delete(player.UserId);
-				});
+		// Set cache status to loading
+		this.cachedUserData.set(player.UserId, {
+			status: "loading",
+			data: undefined,
 		});
+
+		// Upsert data
+		Promise.retryWithDelay(
+			() =>
+				this.supabase
+					.from("users")
+					.upsert({ id: player.UserId, is_playing: true }, { returning: "representation" })
+					.single()
+					.andThen((resolve) => {
+						if (resolve.error) return Promise.reject(resolve.error.message);
+
+						this.cachedUserData.set(player.UserId, {
+							status: "ready",
+							data: resolve.data,
+						});
+					}),
+			RETRY_COUNT,
+			RETRY_DELAY,
+		)
+			.andThen(() => {
+				print("Loaded user data for player: ", player.UserId);
+			})
+			.catch((err) => {
+				print("An error occurred while loading user data: ", err);
+				player.Kick("Failed to load user data");
+			});
 	}
 
-	private saveAllData() {
+	private async saveData(player: Player): Promise<void> {
+		const cache = this.cachedUserData.get(player.UserId);
+
+		// Skip if cache is in clearing or doesn't exist
+		if (!cache || cache.status === "clearing") return;
+
+		// Skip if no dirty flags
+		if (!this.dirtyFlags.has(player.UserId)) return;
+
+		// Wait for cache to be ready
+		while (cache.status !== "ready") {
+			task.wait();
+		}
+
+		cache.status = "saving";
+
+		// Save data
+		Promise.retryWithDelay(
+			() =>
+				this.supabase
+					.from("users")
+					.update({ ...cache.data, is_playing: false })
+					.eq("id", player.UserId)
+					.execute()
+					.andThen((response) => {
+						if (response.error) return Promise.reject(response.error.message);
+					}),
+			RETRY_COUNT,
+			RETRY_DELAY,
+		)
+			.andThen(() => {
+				print("Saved user data for player: ", player.UserId);
+			})
+			.catch((err) => {
+				print("Error occurred while saving user data: ", err);
+			})
+			.finally(() => {
+				cache.status = "ready";
+			});
+	}
+
+	private async clearData(player: Player): Promise<void> {
+		const cache = this.cachedUserData.get(player.UserId);
+		if (!cache) return;
+
+		// Wait for cache to be ready
+		while (cache.status !== "ready") {
+			task.wait();
+		}
+
+		cache.status = "clearing";
+		this.cachedUserData.delete(player.UserId);
+		this.dirtyFlags.delete(player.UserId);
+	}
+
+	private async saveAllData(): Promise<void> {
+		const savePromises: Promise<void>[] = [];
+
 		for (const [userId] of this.cachedUserData) {
 			const player = Players.GetPlayerByUserId(userId);
 
 			if (player) {
-				this.saveData(player);
+				savePromises.push(this.saveData(player));
 			}
 		}
+
+		await Promise.all(savePromises);
+	}
+
+	private async clearAllData(): Promise<void> {
+		const clearPromises: Promise<void>[] = [];
+
+		for (const [userId] of this.cachedUserData) {
+			const player = Players.GetPlayerByUserId(userId);
+
+			if (player) {
+				clearPromises.push(this.clearData(player));
+			}
+		}
+
+		await Promise.all(clearPromises);
 	}
 
 	private async checkUserValid(player: Player): Promise<boolean> {
@@ -168,18 +180,30 @@ export default class UserDataService implements OnStart {
 			...data,
 		};
 
+		// Mark as dirty
+		this.dirtyFlags.add(player.UserId);
+
 		return true;
 	}
 
 	onStart(): void {
 		Players.PlayerAdded.Connect(async (player) => {
-			if (!(await this.checkUserValid(player))) return;
+			const isUserValid = await this.checkUserValid(player);
 
-			this.loadData(player);
+			if (!isUserValid) return;
+
+			await this.loadData(player);
 		});
 
-		Players.PlayerRemoving.Connect((player) => {
-			this.saveData(player);
+		Players.PlayerRemoving.Connect(async (player) => {
+			await this.saveData(player);
+			await this.clearData(player);
+		});
+
+		game.BindToClose(() => {
+			this.saveAllData().then(() => {
+				this.clearAllData();
+			});
 		});
 
 		this.remoteFunctions.getUserData.setCallback((player) => {
@@ -191,14 +215,6 @@ export default class UserDataService implements OnStart {
 				task.wait(SAVE_INTERVAL);
 
 				this.saveAllData();
-			}
-		});
-
-		game.BindToClose(() => {
-			this.saveAllData();
-
-			while (this.cachedUserData.size() > 0) {
-				task.wait();
 			}
 		});
 	}
