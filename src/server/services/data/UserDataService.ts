@@ -34,8 +34,10 @@ export default class UserDataService implements OnStart {
 		if (cache?.status === "clearing") return;
 
 		// Wait for cache to be ready
+		if (cache) {
 		while (cache?.status !== "ready") {
 			task.wait();
+			}
 		}
 
 		// Set cache status to loading
