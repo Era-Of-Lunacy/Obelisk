@@ -3,4 +3,5 @@ import { makeHello } from "shared/module";
 
 print(makeHello("main.server.ts"));
 
+Flamework.addPaths("src/server/services");
 Flamework.ignite();
