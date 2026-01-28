@@ -35,8 +35,8 @@ export default class UserDataService implements OnStart {
 
 		// Wait for cache to be ready
 		if (cache) {
-		while (cache?.status !== "ready") {
-			task.wait();
+			while (cache?.status !== "ready") {
+				task.wait();
 			}
 		}
 
