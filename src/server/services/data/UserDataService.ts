@@ -3,6 +3,7 @@ import { SupabaseClient } from "@rbxts/roblox-supabase";
 import { HttpService, Players } from "@rbxts/services";
 import { $env } from "rbxts-transform-env";
 import { DataCache } from "server/types/data";
+import { GlobalDataFunctions } from "shared/networking/Data";
 import { Database } from "shared/types/database.types";
 
 export type User = Database["public"]["Tables"]["users"]["Row"];
@@ -16,6 +17,7 @@ const RETRY_DELAY = 0.1;
 export default class UserDataService implements OnStart {
 	private supabase: SupabaseClient<Database>;
 	private cachedUserData: Map<number, DataCache<User>> = new Map();
+	private remoteFunctions = GlobalDataFunctions.createServer({});
 
 	constructor() {
 		this.supabase = new SupabaseClient<Database>(
@@ -164,6 +166,10 @@ export default class UserDataService implements OnStart {
 
 		Players.PlayerRemoving.Connect((player) => {
 			this.saveData(player);
+		});
+
+		this.remoteFunctions.getUserData.setCallback((player) => {
+			return this.getData(player);
 		});
 
 		task.spawn(() => {
