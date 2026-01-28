@@ -1,10 +1,10 @@
-import { Service } from "@flamework/core";
+import { Controller } from "@flamework/core";
 import ClassDataService, { ClassEnum } from "server/services/data/ClassDataService";
 import UserDataService from "server/services/data/UserDataService";
 import { ClassFunctions } from "shared/networking/Class";
 
-@Service()
-export default class ClassService {
+@Controller()
+export default class ClassController {
 	private remoteFunctions = ClassFunctions.createServer({});
 
 	constructor(
