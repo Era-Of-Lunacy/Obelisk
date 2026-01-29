@@ -11,9 +11,9 @@ export default class ClassController {
 		private userDataService: UserDataService,
 		private classDataService: ClassDataService,
 	) {
-		this.remoteFunctions.buyClass.setCallback(this.buyClass);
-		this.remoteFunctions.equipClass.setCallback(this.equipClass);
-		this.remoteFunctions.unequipClass.setCallback(this.unequipClass);
+		this.remoteFunctions.buyClass.setCallback((player, classId) => this.buyClass(player, classId));
+		this.remoteFunctions.equipClass.setCallback((player, classId) => this.equipClass(player, classId));
+		this.remoteFunctions.unequipClass.setCallback((player) => this.unequipClass(player));
 	}
 
 	private buyClass(player: Player, classId: ClassEnum): boolean {
