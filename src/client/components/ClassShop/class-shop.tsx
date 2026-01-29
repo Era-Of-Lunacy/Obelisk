@@ -1,9 +1,11 @@
+import { useFlameworkDependency } from "@rbxts/flamework-react-utils";
 import React, { Component, Element, ReactComponent } from "@rbxts/react";
-import { buyClass, equipClass, getEquippedClass, hasClass, unequipClass } from "client/handlers/class-handler";
-import { getAllClasses, getClass } from "client/handlers/data/classes/class-data";
+import ClassDataController from "client/controllers/data/ClassDataController";
+import UserDataController from "client/controllers/data/UserDataController";
+import { ClassType } from "shared/types/database";
 
 interface State {
-	selectedClass: string;
+	selectedClass: ClassType;
 	status: "OWNED" | "NOT_OWNED" | "EQUIPPED";
 }
 
@@ -16,6 +18,9 @@ const ASSETS = {
 
 @ReactComponent
 export class ClassShop extends Component<object, State> {
+	private classDataController = useFlameworkDependency<ClassDataController>();
+	private userDataController = useFlameworkDependency<UserDataController>();
+
 	state: State = {
 		selectedClass: "None",
 		status: "NOT_OWNED",
@@ -23,7 +28,7 @@ export class ClassShop extends Component<object, State> {
 
 	render() {
 		const classButtons: Element[] = [];
-		const classes = getAllClasses();
+		const classes = this.classDataController.getClasses();
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const [_, value] of pairs(classes)) {
@@ -35,11 +40,11 @@ export class ClassShop extends Component<object, State> {
 					BackgroundTransparency={1}
 					Event={{
 						Activated: () => {
-							if (!hasClass(value.class)) {
+							if (!this.userDataController.getData().owned_classes?.includes(value.class)) {
 								this.setState({
 									status: "NOT_OWNED",
 								});
-							} else if (getEquippedClass() === value.class) {
+							} else if (this.userDataController.getData().class === value.class) {
 								this.setState({
 									status: "EQUIPPED",
 								});
@@ -105,12 +110,12 @@ export class ClassShop extends Component<object, State> {
 					</imagelabel>
 					{selectedClass !== "None" &&
 					selectedClass !== undefined &&
-					getClass(selectedClass)?.full_image_id !== undefined ? (
+					this.classDataController.getClass(selectedClass)?.full_image_id !== undefined ? (
 						<imagelabel
 							Size={new UDim2(0.6, 0, 1.2, 0)}
 							Position={new UDim2(1, 0, 0.5, 0)}
 							AnchorPoint={new Vector2(1, 0.5)}
-							Image={getClass(selectedClass).full_image_id}
+							Image={this.classDataController.getClass(selectedClass)?.full_image_id}
 							BackgroundTransparency={1}
 						>
 							<imagebutton
@@ -125,15 +130,15 @@ export class ClassShop extends Component<object, State> {
 								Event={{
 									MouseButton1Click: () => {
 										if (status === "NOT_OWNED") {
-											if (buyClass(selectedClass)) {
+											if (this.classDataController.buyClass(selectedClass).await()[0]) {
 												this.setState({ status: "OWNED" });
 											}
 										} else if (status === "EQUIPPED") {
-											if (unequipClass()) {
+											if (this.classDataController.unequipClass().await()[0]) {
 												this.setState({ status: "OWNED" });
 											}
 										} else if (status === "OWNED") {
-											if (equipClass(selectedClass)) {
+											if (this.classDataController.equipClass(selectedClass).await()[0]) {
 												this.setState({ status: "EQUIPPED" });
 											}
 										}
