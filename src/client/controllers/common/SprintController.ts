@@ -1,5 +1,5 @@
 import { Controller, OnRender, OnStart } from "@flamework/core";
-import { UserInputService, Workspace } from "@rbxts/services";
+import { Players, UserInputService, Workspace } from "@rbxts/services";
 
 const WALK_SPEED = 16;
 const SPRINT_SPEED = 32;
@@ -14,6 +14,10 @@ export default class SprintController implements OnStart, OnRender {
 	private camera = Workspace.CurrentCamera;
 
 	onStart(): void {
+		Players.LocalPlayer.CharacterAdded.Connect((character) => {
+			this.currentHumanoid = character.WaitForChild("Humanoid") as Humanoid;
+		});
+
 		UserInputService.InputBegan.Connect((input) => {
 			if (!this.currentHumanoid) return;
 
