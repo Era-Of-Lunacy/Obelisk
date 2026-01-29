@@ -1,18 +1,16 @@
 import { Networking } from "@flamework/networking";
-import { Database } from "shared/types/database.types";
-
-type ClassEnum = Database["public"]["Enums"]["class"];
+import { ClassType } from "shared/types/database";
 
 interface ClientToServerFunctions {
-	buyClass(classId: ClassEnum): boolean;
-	equipClass(classId: ClassEnum): boolean;
-	unequipClass(): boolean;
+	buyClass: (classId: ClassType) => boolean;
+	equipClass: (classId: ClassType) => boolean;
+	unequipClass: () => boolean;
 }
 
-interface ServerToClientEvents {
-	buyClass(classId: ClassEnum): boolean;
-	equipClass(classId: ClassEnum): boolean;
-	unequipClass(): boolean;
+interface ServerToClientFunctions {
+	buyClass: (classId: ClassType) => boolean;
+	equipClass: (classId: ClassType) => boolean;
+	unequipClass: () => boolean;
 }
 
-export const ClassFunctions = Networking.createFunction<ClientToServerFunctions, ServerToClientEvents>();
+export const ClassFunctions = Networking.createFunction<ClientToServerFunctions, ServerToClientFunctions>();
