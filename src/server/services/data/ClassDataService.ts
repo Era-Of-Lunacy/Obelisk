@@ -6,16 +6,13 @@ import { SupabaseStream, SupabaseRealtimeEvent } from "server/database/supabase"
 import { Database } from "shared/types/database.types";
 import { DatabaseEvents } from "shared/types/database";
 import { GlobalDataEvents } from "shared/networking/Data";
-
-export type Class = Database["public"]["Tables"]["classes"]["Row"];
-export type ClassUpdate = Database["public"]["Tables"]["classes"]["Update"];
-export type ClassEnum = Database["public"]["Enums"]["class"];
+import { Class, ClassType } from "shared/types/database";
 
 @Service()
 export default class ClassDataService implements OnStart {
 	private supabase: SupabaseClient<Database>;
 	private stream: SupabaseStream;
-	private cachedClasses: Map<ClassEnum, Class> = new Map();
+	private cachedClasses: Map<ClassType, Class> = new Map();
 	private remoteEvents = GlobalDataEvents.createServer({});
 
 	constructor() {
@@ -53,11 +50,11 @@ export default class ClassDataService implements OnStart {
 		}
 	}
 
-	getData(classId: ClassEnum): Class | undefined {
+	getData(classId: ClassType): Class | undefined {
 		return this.cachedClasses.get(classId);
 	}
 
-	getAllClasses(): Map<ClassEnum, Class> {
+	getAllClasses(): Map<ClassType, Class> {
 		return this.cachedClasses;
 	}
 

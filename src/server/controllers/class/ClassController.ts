@@ -1,7 +1,8 @@
 import { Controller } from "@flamework/core";
-import ClassDataService, { ClassEnum } from "server/services/data/ClassDataService";
+import ClassDataService from "server/services/data/ClassDataService";
 import UserDataService from "server/services/data/UserDataService";
 import { ClassFunctions } from "shared/networking/Class";
+import { ClassType } from "shared/types/database";
 
 @Controller()
 export default class ClassController {
@@ -16,7 +17,7 @@ export default class ClassController {
 		this.remoteFunctions.unequipClass.setCallback((player) => this.unequipClass(player));
 	}
 
-	private buyClass(player: Player, classId: ClassEnum): boolean {
+	private buyClass(player: Player, classId: ClassType): boolean {
 		const playerData = this.userDataService.getData(player);
 		const classData = this.classDataService.getData(classId);
 
@@ -32,7 +33,7 @@ export default class ClassController {
 		return true;
 	}
 
-	private equipClass(player: Player, classId: ClassEnum): boolean {
+	private equipClass(player: Player, classId: ClassType): boolean {
 		const playerData = this.userDataService.getData(player);
 		const classData = this.classDataService.getData(classId);
 

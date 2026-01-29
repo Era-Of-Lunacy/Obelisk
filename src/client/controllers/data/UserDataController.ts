@@ -1,8 +1,6 @@
 import { Controller, OnStart } from "@flamework/core";
 import { GlobalDataEvents } from "shared/networking/Data";
-import { Database } from "shared/types/database.types";
-
-export type User = Database["public"]["Tables"]["users"]["Row"];
+import { User } from "shared/types/database";
 
 @Controller()
 export default class UserDataController implements OnStart {

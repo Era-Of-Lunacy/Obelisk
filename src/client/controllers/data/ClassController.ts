@@ -1,14 +1,12 @@
 import { Controller } from "@flamework/core";
 import { ClassFunctions } from "shared/networking/Class";
-import { Database } from "shared/types/database.types";
-
-type ClassEnum = Database["public"]["Enums"]["class"];
+import { ClassType } from "shared/types/database";
 
 @Controller()
 export default class ClassController {
 	private remoteFunctions = ClassFunctions.createClient({});
 
-	async equipClass(classId: ClassEnum): Promise<boolean> {
+	async equipClass(classId: ClassType): Promise<boolean> {
 		const success = await this.remoteFunctions.equipClass(classId);
 
 		return success;
@@ -20,7 +18,7 @@ export default class ClassController {
 		return success;
 	}
 
-	async buyClass(classId: ClassEnum): Promise<boolean> {
+	async buyClass(classId: ClassType): Promise<boolean> {
 		const success = await this.remoteFunctions.buyClass(classId);
 
 		return success;

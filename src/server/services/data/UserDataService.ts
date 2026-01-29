@@ -6,9 +6,7 @@ import { DataCache } from "server/types/data";
 import { GlobalDataEvents } from "shared/networking/Data";
 import { Database } from "shared/types/database.types";
 import LeaderstatsService from "../common/LeaderstatsService";
-
-export type User = Database["public"]["Tables"]["users"]["Row"];
-export type UserUpdate = Database["public"]["Tables"]["users"]["Update"];
+import { User, UserUpdate } from "shared/types/database";
 
 const SAVE_INTERVAL = 60;
 const RETRY_COUNT = 10;
