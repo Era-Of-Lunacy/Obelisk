@@ -216,7 +216,7 @@ export default class UserDataService implements OnStart {
 		// Mark as dirty
 		this.dirtyFlags.add(player.UserId);
 
-		this.remoteEvents.userDataUpdated.fire(player, cache.data);
+		this.remoteEvents.userDataUpdated.fire(player, data);
 		this.leaderstatsService.setValue(player, "Bwambles", cache.data.bwambles);
 		this.leaderstatsService.setValue(player, "Class", cache.data.class);
 
