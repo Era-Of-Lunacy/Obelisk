@@ -4,7 +4,7 @@ import { GlobalDataEvents } from "shared/networking/Data";
 import { Class, ClassType, DatabaseEvents } from "shared/types/database";
 
 @Controller()
-export default class ClassController implements OnStart {
+export default class ClassDataController implements OnStart {
 	private classData: Record<string, Class> = {};
 	private remoteEvents = GlobalDataEvents.createClient({});
 	private remoteFunctions = ClassFunctions.createClient({});
