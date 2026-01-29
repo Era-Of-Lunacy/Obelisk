@@ -5,6 +5,7 @@ import { $env } from "rbxts-transform-env";
 import { DataCache } from "server/types/data";
 import { GlobalDataEvents } from "shared/networking/Data";
 import { Database } from "shared/types/database.types";
+import LeaderstatsService from "../common/LeaderstatsService";
 
 export type User = Database["public"]["Tables"]["users"]["Row"];
 export type UserUpdate = Database["public"]["Tables"]["users"]["Update"];
@@ -20,7 +21,7 @@ export default class UserDataService implements OnStart {
 	private dirtyFlags: Set<number> = new Set();
 	private remoteEvents = GlobalDataEvents.createServer({});
 
-	constructor() {
+	constructor(private leaderstatsService: LeaderstatsService) {
 		this.supabase = new SupabaseClient<Database>(
 			`https://${$env.string("PROJECT_ID")}.supabase.co`,
 			HttpService.GetSecret("SUPABASE_ANON_KEY"),
@@ -62,6 +63,7 @@ export default class UserDataService implements OnStart {
 						});
 
 						this.remoteEvents.userDataUpdated.fire(player, resolve.data);
+						this.leaderstatsService.setValue(player, "Bwambles", resolve.data.bwambles);
 					}),
 			RETRY_COUNT,
 			RETRY_DELAY,
@@ -214,6 +216,7 @@ export default class UserDataService implements OnStart {
 		this.dirtyFlags.add(player.UserId);
 
 		this.remoteEvents.userDataUpdated.fire(player, cache.data);
+		this.leaderstatsService.setValue(player, "Bwambles", cache.data.bwambles);
 
 		return true;
 	}
