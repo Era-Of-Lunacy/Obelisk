@@ -225,7 +225,10 @@ export default class UserDataService implements OnStart {
 		Players.PlayerAdded.Connect(async (player) => {
 			const isUserValid = await this.checkUserValid(player);
 
-			if (!isUserValid) return;
+			if (!isUserValid) {
+				player.Kick("User is not valid");
+				return;
+			}
 
 			await this.loadData(player);
 
