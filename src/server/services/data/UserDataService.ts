@@ -230,6 +230,9 @@ export default class UserDataService implements OnStart {
 			if (!isUserValid) return;
 
 			await this.loadData(player);
+
+			this.leaderstatsService.registerValue(player, "Bwambles", new Instance("NumberValue"));
+			this.leaderstatsService.registerValue(player, "Class", new Instance("StringValue"));
 		});
 
 		Players.PlayerRemoving.Connect(async (player) => {
