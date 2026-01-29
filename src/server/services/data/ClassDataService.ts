@@ -7,6 +7,8 @@ import { Database } from "shared/types/database.types";
 import { DatabaseEvents } from "shared/types/database";
 import { GlobalDataEvents } from "shared/networking/Data";
 import { Class, ClassType } from "shared/types/database";
+import UserDataService from "server/services/data/UserDataService";
+import { ClassFunctions } from "shared/networking/Class";
 
 @Service()
 export default class ClassDataService implements OnStart {
@@ -14,8 +16,9 @@ export default class ClassDataService implements OnStart {
 	private stream: SupabaseStream;
 	private cachedClasses: Map<ClassType, Class> = new Map();
 	private remoteEvents = GlobalDataEvents.createServer({});
+	private remoteFunctions = ClassFunctions.createServer({});
 
-	constructor() {
+	constructor(private userDataService: UserDataService) {
 		this.supabase = new SupabaseClient<Database>(
 			`https://${$env.string("PROJECT_ID")}.supabase.co`,
 			HttpService.GetSecret("SUPABASE_ANON_KEY"),
@@ -24,6 +27,10 @@ export default class ClassDataService implements OnStart {
 		this.stream = new SupabaseStream(
 			`wss://${$env.string("PROJECT_ID")}.supabase.co/realtime/v1/websocket?apikey=${$env.string("SECRET_API_KEY", "")}`,
 		);
+
+		this.remoteFunctions.buyClass.setCallback((player, classId) => this.buyClass(player, classId));
+		this.remoteFunctions.equipClass.setCallback((player, classId) => this.equipClass(player, classId));
+		this.remoteFunctions.unequipClass.setCallback((player) => this.unequipClass(player));
 	}
 
 	private async loadAllClassData(): Promise<void> {
@@ -56,6 +63,47 @@ export default class ClassDataService implements OnStart {
 
 	getAllClasses(): Map<ClassType, Class> {
 		return this.cachedClasses;
+	}
+
+	buyClass(player: Player, classId: ClassType): boolean {
+		const playerData = this.userDataService.getData(player);
+		const classData = this.getData(classId);
+
+		if (!playerData || !classData) return false;
+		if (playerData.owned_classes?.includes(classId)) return false;
+		if (playerData.bwambles < classData.price) return false;
+
+		this.userDataService.updateData(player, {
+			owned_classes: playerData.owned_classes ? [...playerData.owned_classes, classId] : [classId],
+			bwambles: playerData.bwambles - classData.price,
+		});
+
+		return true;
+	}
+
+	equipClass(player: Player, classId: ClassType): boolean {
+		const playerData = this.userDataService.getData(player);
+		const classData = this.getData(classId);
+
+		if (!playerData || !classData) return false;
+
+		if (playerData.class === classId) return false;
+		if (!playerData.owned_classes?.includes(classId)) return false;
+
+		this.userDataService.updateData(player, { class: classId });
+
+		return true;
+	}
+
+	unequipClass(player: Player): boolean {
+		const playerData = this.userDataService.getData(player);
+
+		if (!playerData) return false;
+		if (playerData.class === undefined) return false;
+
+		this.userDataService.updateData(player, { class: undefined });
+
+		return true;
 	}
 
 	onStart(): void {
