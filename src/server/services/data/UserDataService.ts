@@ -64,6 +64,7 @@ export default class UserDataService implements OnStart {
 
 						this.remoteEvents.userDataUpdated.fire(player, resolve.data);
 						this.leaderstatsService.setValue(player, "Bwambles", resolve.data.bwambles);
+						this.leaderstatsService.setValue(player, "Class", resolve.data.class);
 					}),
 			RETRY_COUNT,
 			RETRY_DELAY,
@@ -217,6 +218,7 @@ export default class UserDataService implements OnStart {
 
 		this.remoteEvents.userDataUpdated.fire(player, cache.data);
 		this.leaderstatsService.setValue(player, "Bwambles", cache.data.bwambles);
+		this.leaderstatsService.setValue(player, "Class", cache.data.class);
 
 		return true;
 	}
