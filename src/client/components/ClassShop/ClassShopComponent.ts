@@ -16,7 +16,7 @@ export default class ClassShopComponent extends BaseComponent<undefined, BasePar
 	constructor() {
 		super();
 		this.overlapParams = new OverlapParams();
-		this.overlapParams.FilterType = Enum.RaycastFilterType.Include;
+		this.overlapParams.FilterType = Enum.RaycastFilterType.Exclude;
 	}
 
 	onStart(): void {
