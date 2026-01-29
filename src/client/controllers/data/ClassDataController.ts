@@ -10,19 +10,19 @@ export default class ClassDataController implements OnStart {
 	private remoteFunctions = ClassFunctions.createClient({});
 
 	async equipClass(classId: ClassType): Promise<boolean> {
-		const success = await this.remoteFunctions.equipClass(classId);
+		const success = await this.remoteFunctions.equipClass.invoke(classId);
 
 		return success;
 	}
 
 	async unequipClass(): Promise<boolean> {
-		const success = await this.remoteFunctions.unequipClass();
+		const success = await this.remoteFunctions.unequipClass.invoke();
 
 		return success;
 	}
 
 	async buyClass(classId: ClassType): Promise<boolean> {
-		const success = await this.remoteFunctions.buyClass(classId);
+		const success = await this.remoteFunctions.buyClass.invoke(classId);
 
 		return success;
 	}
