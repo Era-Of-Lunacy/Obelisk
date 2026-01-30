@@ -46,7 +46,7 @@ export default class UserDataService implements OnStart {
 		});
 
 		// Upsert data
-		Promise.retryWithDelay(
+		await Promise.retryWithDelay(
 			() =>
 				this.supabase
 					.from("users")
@@ -96,7 +96,7 @@ export default class UserDataService implements OnStart {
 		cache.status = "saving";
 
 		// Save data
-		Promise.retryWithDelay(
+		await Promise.retryWithDelay(
 			() =>
 				this.supabase
 					.from("users")
@@ -132,7 +132,7 @@ export default class UserDataService implements OnStart {
 		cache.status = "clearing";
 
 		// Clear data
-		Promise.retryWithDelay(
+		await Promise.retryWithDelay(
 			() =>
 				this.supabase
 					.from("users")
@@ -229,11 +229,10 @@ export default class UserDataService implements OnStart {
 				player.Kick("User is not valid");
 				return;
 			}
-
-			await this.loadData(player);
-
 			this.leaderstatsService.registerValue(player, "Bwambles", new Instance("NumberValue"));
 			this.leaderstatsService.registerValue(player, "Class", new Instance("StringValue"));
+
+			await this.loadData(player);
 		});
 
 		Players.PlayerRemoving.Connect(async (player) => {
@@ -242,9 +241,9 @@ export default class UserDataService implements OnStart {
 		});
 
 		game.BindToClose(() => {
-			this.saveAllData().then(() => {
-				this.clearAllData();
-			});
+			while (this.cachedUserData.size() > 0) {
+				task.wait();
+			}
 		});
 
 		this.remoteEvents.clientReady.connect((player) => {
