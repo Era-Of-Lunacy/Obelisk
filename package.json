@@ -7,7 +7,8 @@
     "build": "rbxtsc",
     "watch": "rbxtsc -w",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "update-types": "./scripts/update-types.sh"
   },
   "keywords": [],
   "author": "",
