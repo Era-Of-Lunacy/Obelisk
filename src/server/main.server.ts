@@ -1,8 +1,8 @@
 import { Flamework } from "@flamework/core";
-import { makeHello } from "shared/module";
-
-print(makeHello("main.server.ts"));
+import { $git } from "rbxts-transform-debug";
 
 Flamework.addPaths("src/server/services");
 Flamework.addPaths("src/server/components");
 Flamework.ignite();
+
+print("Server Version: ", $git().Commit)
