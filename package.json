@@ -1,0 +1,35 @@
+{
+  "name": "obelisk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rbxtsc",
+    "watch": "rbxtsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Era-Of-Lunacy/Obelisk.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Era-Of-Lunacy/Obelisk/issues"
+  },
+  "homepage": "https://github.com/Era-Of-Lunacy/Obelisk#readme",
+  "devDependencies": {
+    "@rbxts/compiler-types": "^3.0.0-types.0",
+    "@rbxts/types": "^1.0.909",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-roblox-ts": "^1.4.0",
+    "prettier": "^3.8.1",
+    "roblox-ts": "^3.0.0",
+    "typescript": "^5.9.3"
+  }
+}
