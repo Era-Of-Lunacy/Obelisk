@@ -25,7 +25,7 @@ export default function Redirect(props: RedirectProps) {
 	}, []);
 
 	return (
-		<screengui IgnoreGuiInset={true}>
+		<screengui IgnoreGuiInset={true} ResetOnSpawn={false}>
 			<frame
 				AnchorPoint={new Vector2(0.5, 0.5)}
 				Size={new UDim2(1, 0, 1, 0)}
