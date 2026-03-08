@@ -1,8 +1,31 @@
 import React from "@rbxts/react";
 
-export default function Redirect() {
+interface RedirectProps {
+	message: string;
+	seconds: number;
+}
+
+export default function Redirect(props: RedirectProps) {
+	const [timeLeft, setTimeLeft] = React.useState(props.seconds);
+
+	React.useEffect(() => {
+		const thread = task.spawn(() => {
+			while (true) {
+				task.wait(1);
+
+				setTimeLeft((prev) => {
+					if (prev <= 0) {
+						task.cancel(thread);
+						return 0;
+					}
+					return prev - 1;
+				});
+			}
+		});
+	}, []);
+
 	return (
-		<screengui ResetOnSpawn={false} IgnoreGuiInset={true}>
+		<screengui IgnoreGuiInset={true}>
 			<frame
 				AnchorPoint={new Vector2(0.5, 0.5)}
 				Size={new UDim2(1, 0, 1, 0)}
@@ -12,7 +35,8 @@ export default function Redirect() {
 					AnchorPoint={new Vector2(0.5, 0.5)}
 					Position={new UDim2(0.5, 0, 0.5, 0)}
 					Font={Enum.Font.Cartoon}
-					Text="The current server is down.\nWe will be redirecting you to another place."
+					FontSize="Size36"
+					Text={props.message + `\nRedirecting in ${timeLeft}...`}
 				></textlabel>
 			</frame>
 		</screengui>
