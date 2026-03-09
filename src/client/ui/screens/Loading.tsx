@@ -1,23 +1,11 @@
-import React, { useEffect, useState } from "@rbxts/react";
-import { ContentProvider } from "@rbxts/services";
+import React from "@rbxts/react";
+import { useSelector } from "@rbxts/react-reflex";
+import { RootState } from "client/producers";
+
+const selectLoading = (state: RootState) => state.loading;
 
 export default function Loading() {
-	const [progress, setProgress] = useState(0);
-	const [loadingAsset, setLoadingAsset] = useState("Initializing...");
-
-	useEffect(() => {
-		const assets = game.GetDescendants();
-
-		task.spawn(() => {
-			assets.forEach((asset, i) => {
-				ContentProvider.PreloadAsync([asset]);
-				setLoadingAsset("Loading: " + asset.Name);
-				setProgress((i + 1) / assets.size());
-			});
-
-			setLoadingAsset("All assets loaded!");
-		});
-	}, []);
+	const loading = useSelector(selectLoading);
 
 	return (
 		<screengui IgnoreGuiInset ResetOnSpawn={false} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
@@ -65,7 +53,7 @@ export default function Loading() {
 
 						{/* Progress Fill */}
 						<frame
-							Size={new UDim2(progress, 0, 1, 0)}
+							Size={new UDim2(loading.loadedAssets / loading.totalAssets, 0, 1, 0)}
 							BackgroundColor3={Color3.fromRGB(0, 200, 120)}
 							BorderSizePixel={0}
 						></frame>
@@ -73,7 +61,7 @@ export default function Loading() {
 
 					{/* Percent */}
 					<textlabel
-						Text={`${math.floor(progress * 100)}%`}
+						Text={`${math.floor((loading.loadedAssets / loading.totalAssets) * 100)}%`}
 						BackgroundTransparency={1}
 						TextColor3={Color3.fromRGB(200, 200, 200)}
 						TextScaled
@@ -82,7 +70,7 @@ export default function Loading() {
 
 					{/* Asset Name */}
 					<textlabel
-						Text={loadingAsset}
+						Text={loading.assetName}
 						BackgroundTransparency={1}
 						TextColor3={Color3.fromRGB(150, 150, 150)}
 						TextScaled
